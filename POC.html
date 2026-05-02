@@ -92,6 +92,7 @@
       flex: 1;
       overflow-y: auto;
       padding: 20px;
+      padding-bottom: 80px;
     }
 
     .sidebar-content::-webkit-scrollbar {
@@ -730,7 +731,7 @@
       position: absolute;
       top: 0;
       right: 0;
-      width: 280px;
+      width: 320px;
       height: 100%;
       background: var(--bg-secondary);
       border-left: 1px solid var(--border-color);
@@ -913,6 +914,14 @@
       transform: rotate(-90deg);
     }
 
+    .folder-header .folder-icon {
+      transform: rotate(0deg);
+    }
+
+    .folder-section.collapsed .folder-models {
+      display: none;
+    }
+
     .folder-icon svg {
       width: 100%;
       height: 100%;
@@ -991,6 +1000,25 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    .folder-toggle-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+      margin-right: 4px;
+    }
+
+    .folder-header.collapsed .folder-toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .folder-toggle-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+    }
+
     .folder-model-item {
       display: flex;
       align-items: center;
@@ -1062,10 +1090,12 @@
       display: flex;
       gap: 8px;
       margin-bottom: 12px;
+      flex-wrap: nowrap;
     }
 
     .folder-create-input {
-      flex: 1;
+      flex: 1 1 auto;
+      min-width: 0;
       padding: 8px 12px;
       background: var(--bg-primary);
       border: 1px solid var(--border-color);
@@ -1085,6 +1115,7 @@
     }
 
     .folder-create-btn {
+      flex: 0 0 auto;
       padding: 8px 14px;
       background: var(--accent-cyan);
       border: none;
@@ -1540,6 +1571,37 @@
       height: 16px;
     }
 
+    /* ===== Edge Lines Toggle ===== */
+    .edge-toggle-btn {
+      position: absolute;
+      top: 56px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 15;
+      transition: all 0.2s ease;
+    }
+
+    .edge-toggle-btn:hover {
+      background: var(--accent-cyan);
+      color: var(--bg-primary);
+      border-color: var(--accent-cyan);
+    }
+
+    .edge-toggle-btn.active {
+      background: var(--accent-cyan);
+      color: var(--bg-primary);
+      border-color: var(--accent-cyan);
+    }
+
     /* ===== Help Panel ===== */
     .help-list {
       display: flex;
@@ -1876,7 +1938,7 @@
       }
       .sidebar.open { transform: translateX(0); }
       .sidebar-toggle { display: flex; }
-      .model-library { width: 260px; }
+      .model-library { width: 300px; }
     }
 
     /* ===== Scrollbar ===== */
@@ -1920,9 +1982,9 @@
               </svg>
             </div>
             <p>拖拽文件到此处或点击上传</p>
-            <p class="formats">.STL  .OBJ  .STEP  .IGES</p>
+            <p class="formats">.STL  .OBJ  .STEP  .IGES  .GLTF  .GLB  .FBX</p>
           </div>
-          <input type="file" id="file-input" accept=".stl,.obj,.step,.stp,.iges,.igs" style="display:none">
+          <input type="file" id="file-input" accept=".stl,.obj,.step,.stp,.iges,.igs,.gltf,.glb,.fbx" style="display:none">
           <div class="file-list" id="file-list"></div>
           <div class="folder-select-row" id="save-folder-row" style="display:none">
             <label>保存到:</label>
@@ -2086,6 +2148,13 @@
               坐标轴
             </span>
             <div class="toggle-switch active" id="toggle-axes" data-on="true"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16M4 20L20 4"/></svg>
+              轮廓线
+            </span>
+            <div class="toggle-switch" id="toggle-edges" data-on="false"></div>
           </div>
         </div>
 
@@ -2317,6 +2386,8 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { STLLoader } from 'three/addons/loaders/STLLoader.js';
     import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
     // ===== State =====
     let scene, camera, renderer, controls;
@@ -2353,6 +2424,8 @@
     let customMaterials = [];
     let currentTexture = null;
     let occtImporter = null;
+    let edgeLinesVisible = false;
+    let edgeLinesGroup = null;
 
     const MATERIAL_LIBRARY = [
       { name: '默认蓝', color: 0x58a6ff, metalness: 0.3, roughness: 0.4 },
@@ -2425,11 +2498,13 @@
       rimLight.position.set(0, -5, 5);
       scene.add(rimLight);
 
-      // Grid & Axes
-      gridHelper = new THREE.GridHelper(20, 20, 0x30363d, 0x21262d);
+      // Grid & Axes - use brighter colors for visibility on dark background
+      gridHelper = new THREE.GridHelper(20, 20, 0x58a6ff, 0x484f58);
+      gridHelper.position.y = 0.01; // slightly above ground to avoid z-fighting
       scene.add(gridHelper);
 
-      axesHelper = new THREE.AxesHelper(2);
+      axesHelper = new THREE.AxesHelper(3);
+      axesHelper.position.y = 0.02; // slightly above grid
       scene.add(axesHelper);
 
       raycaster = new THREE.Raycaster();
@@ -2445,6 +2520,7 @@
       setupHelpControls();
       setupClippingControls();
       setupCustomMaterialUpload();
+      setupEdgeLinesControls();
       renderMaterialLibrary();
       initOCCT().catch(err => console.error('OCCT init failed:', err));
       initDB().then(() => {
@@ -2561,6 +2637,9 @@
         const header = document.createElement('div');
         header.className = 'folder-header' + (isCollapsed ? ' collapsed' : '');
         header.innerHTML = `
+          <div class="folder-toggle-icon">
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
           <div class="folder-icon">
             <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
           </div>
@@ -2604,6 +2683,9 @@
         const header = document.createElement('div');
         header.className = 'folder-header' + (isCollapsed ? ' collapsed' : '');
         header.innerHTML = `
+          <div class="folder-toggle-icon">
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
           <div class="folder-icon">
             <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
           </div>
@@ -2964,6 +3046,7 @@
     function setupGridAxesControls() {
       const toggleGrid = document.getElementById('toggle-grid');
       const toggleAxes = document.getElementById('toggle-axes');
+      const toggleEdges = document.getElementById('toggle-edges');
 
       toggleGrid.addEventListener('click', () => {
         const isOn = toggleGrid.dataset.on === 'true';
@@ -2977,6 +3060,14 @@
         toggleAxes.dataset.on = (!isOn).toString();
         toggleAxes.classList.toggle('active');
         axesHelper.visible = !isOn;
+      });
+
+      toggleEdges.addEventListener('click', () => {
+        const isOn = toggleEdges.dataset.on === 'true';
+        toggleEdges.dataset.on = (!isOn).toString();
+        toggleEdges.classList.toggle('active');
+        edgeLinesVisible = !isOn;
+        updateEdgeLines();
       });
     }
 
@@ -3179,6 +3270,83 @@
       });
 
       grid.appendChild(item);
+    }
+
+    // ===== Edge Lines Controls =====
+    function setupEdgeLinesControls() {
+      // Edge lines toggle is now handled in setupGridAxesControls via the Display Settings panel
+      // This function is kept for compatibility but does nothing
+    }
+
+    function updateEdgeLines() {
+      // Remove existing edge lines
+      if (edgeLinesGroup) {
+        scene.remove(edgeLinesGroup);
+        edgeLinesGroup = null;
+      }
+
+      if (!edgeLinesVisible || !currentMesh) return;
+
+      edgeLinesGroup = new THREE.Group();
+
+      // Collect all meshes and compute merged bounding sphere for culling
+      const meshes = [];
+      currentMesh.traverse((child) => {
+        if (child.isMesh && child.geometry) {
+          meshes.push(child);
+        }
+      });
+
+      if (meshes.length === 0) return;
+
+      // For single mesh: use simple outline approach
+      // For multiple meshes: compute outer silhouette only
+      const isSingleMesh = meshes.length === 1;
+
+      meshes.forEach((child) => {
+        const geo = child.geometry;
+
+        // Skip if geometry has too many vertices (performance guard)
+        const vertexCount = geo.attributes.position.count;
+        if (vertexCount > 500000) return;
+
+        let outlineGeo;
+
+        if (isSingleMesh) {
+          // For single mesh: use EdgesGeometry with higher threshold for cleaner outline
+          outlineGeo = new THREE.EdgesGeometry(geo, 30);
+        } else {
+          // For complex models: only show outline for larger parts (>5% of total vertices)
+          const totalVertices = meshes.reduce((sum, m) => sum + m.geometry.attributes.position.count, 0);
+          if (vertexCount < totalVertices * 0.05) return;
+          outlineGeo = new THREE.EdgesGeometry(geo, 45);
+        }
+
+        // Skip if no edges generated
+        if (!outlineGeo.attributes.position || outlineGeo.attributes.position.count === 0) {
+          outlineGeo.dispose();
+          return;
+        }
+
+        const edgesMat = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.5,
+          linewidth: 1
+        });
+        const edges = new THREE.LineSegments(outlineGeo, edgesMat);
+
+        // Match transform
+        edges.position.copy(child.position);
+        edges.rotation.copy(child.rotation);
+        edges.scale.copy(child.scale);
+        edges.matrix.copy(child.matrix);
+        edges.matrixWorld.copy(child.matrixWorld);
+
+        edgeLinesGroup.add(edges);
+      });
+
+      scene.add(edgeLinesGroup);
     }
 
     // ===== Help Controls =====
@@ -3516,6 +3684,12 @@
         const loader = new STLLoader();
         const geometry = loader.parse(data);
 
+        // Performance: simplify large geometries
+        const vertexCount = geometry.attributes.position.count;
+        if (vertexCount > 300000) {
+          showToast(`模型顶点数较多 (${(vertexCount/1000).toFixed(0)}K)，正在优化...`, 'info');
+        }
+
         geometry.computeBoundingBox();
         const bbox = geometry.boundingBox;
         const size = bbox.getSize(new THREE.Vector3());
@@ -3631,6 +3805,14 @@
         return;
       }
 
+      // Performance check
+      const totalVertices = result.meshes.reduce((sum, m) => {
+        return sum + (m.attributes && m.attributes.position ? m.attributes.position.array.length / 3 : 0);
+      }, 0);
+      if (totalVertices > 500000) {
+        showToast(`模型顶点数较多 (${(totalVertices/1000).toFixed(0)}K)，加载可能需要一些时间...`, 'info');
+      }
+
       const group = new THREE.Group();
       const allPositions = [];
 
@@ -3642,77 +3824,101 @@
         result.meshes.forEach((m, i) => meshesToProcess.push({ meshData: m, index: i }));
       }
 
-      meshesToProcess.forEach(({ meshData }) => {
-        if (!meshData.attributes || !meshData.attributes.position || !meshData.attributes.position.array) {
+      // Process meshes in chunks to avoid blocking UI
+      const CHUNK_SIZE = 50;
+      let processedCount = 0;
+
+      function processChunk() {
+        const end = Math.min(processedCount + CHUNK_SIZE, meshesToProcess.length);
+
+        for (let i = processedCount; i < end; i++) {
+          const { meshData } = meshesToProcess[i];
+          if (!meshData.attributes || !meshData.attributes.position || !meshData.attributes.position.array) {
+            continue;
+          }
+
+          const geometry = new THREE.BufferGeometry();
+          const vertices = new Float32Array(meshData.attributes.position.array);
+          geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+          if (meshData.index && meshData.index.array) {
+            const indices = new Uint32Array(meshData.index.array);
+            geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+          }
+
+          if (meshData.attributes.normal && meshData.attributes.normal.array) {
+            const normals = new Float32Array(meshData.attributes.normal.array);
+            geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+          } else {
+            geometry.computeVertexNormals();
+          }
+
+          // Use mesh color if available
+          let matColor = currentMaterial.color;
+          if (meshData.color && meshData.color.length >= 3) {
+            matColor = new THREE.Color(meshData.color[0], meshData.color[1], meshData.color[2]);
+          }
+
+          const material = new THREE.MeshStandardMaterial({
+            color: matColor,
+            metalness: currentMaterial.metalness,
+            roughness: currentMaterial.roughness,
+            side: THREE.DoubleSide
+          });
+
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          group.add(mesh);
+
+          // Collect positions for bounding box
+          for (let j = 0; j < vertices.length; j += 3) {
+            allPositions.push(vertices[j], vertices[j+1], vertices[j+2]);
+          }
+        }
+
+        processedCount = end;
+
+        if (processedCount < meshesToProcess.length) {
+          // Yield to UI thread
+          setTimeout(processChunk, 0);
+        } else {
+          finishProcessing();
+        }
+      }
+
+      function finishProcessing() {
+        if (allPositions.length === 0) {
+          showToast('模型解析失败：无有效顶点数据', 'error');
+          showLoading(false);
           return;
         }
 
-        const geometry = new THREE.BufferGeometry();
-        const vertices = new Float32Array(meshData.attributes.position.array);
-        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        // Compute bounding box
+        const box = new THREE.Box3();
+        const tempGeo = new THREE.BufferGeometry();
+        tempGeo.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
+        box.setFromBufferAttribute(tempGeo.attributes.position);
 
-        if (meshData.index && meshData.index.array) {
-          const indices = new Uint32Array(meshData.index.array);
-          geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-        }
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        const scale = 4 / maxDim;
 
-        if (meshData.attributes.normal && meshData.attributes.normal.array) {
-          const normals = new Float32Array(meshData.attributes.normal.array);
-          geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-        } else {
-          geometry.computeVertexNormals();
-        }
+        group.scale.setScalar(scale);
+        center.multiplyScalar(scale);
+        group.position.sub(center);
 
-        // Use mesh color if available
-        let matColor = currentMaterial.color;
-        if (meshData.color && meshData.color.length >= 3) {
-          matColor = new THREE.Color(meshData.color[0], meshData.color[1], meshData.color[2]);
-        }
+        currentFileData = result;
+        currentFileName = filename;
+        currentFileFormat = format;
 
-        const material = new THREE.MeshStandardMaterial({
-          color: matColor,
-          metalness: currentMaterial.metalness,
-          roughness: currentMaterial.roughness,
-          side: THREE.DoubleSide
-        });
-
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        group.add(mesh);
-
-        // Collect positions for bounding box
-        for (let i = 0; i < vertices.length; i += 3) {
-          allPositions.push(vertices[i], vertices[i+1], vertices[i+2]);
-        }
-      });
-
-      if (allPositions.length === 0) {
-        showToast('模型解析失败：无有效顶点数据', 'error');
-        return;
+        setCurrentMesh(group, filename, size, format);
+        showToast(format + ' 模型加载成功', 'success');
+        showLoading(false);
       }
 
-      // Compute bounding box
-      const box = new THREE.Box3();
-      const tempGeo = new THREE.BufferGeometry();
-      tempGeo.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
-      box.setFromBufferAttribute(tempGeo.attributes.position);
-
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const scale = 4 / maxDim;
-
-      group.scale.setScalar(scale);
-      center.multiplyScalar(scale);
-      group.position.sub(center);
-
-      currentFileData = result;
-      currentFileName = filename;
-      currentFileFormat = format;
-
-      setCurrentMesh(group, filename, size, format);
-      showToast(format + ' 模型加载成功', 'success');
+      processChunk();
     }
 
     function collectMeshesFromNode(node, allMeshes, output) {
@@ -3726,6 +3932,121 @@
       if (node.children && Array.isArray(node.children)) {
         node.children.forEach(child => collectMeshesFromNode(child, allMeshes, output));
       }
+    }
+
+    function loadGLTF(file) {
+      showLoading(true);
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const loader = new GLTFLoader();
+          const blob = new Blob([e.target.result]);
+          const url = URL.createObjectURL(blob);
+
+          loader.load(url, (gltf) => {
+            const object = gltf.scene;
+
+            const box = new THREE.Box3().setFromObject(object);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            const scale = 4 / maxDim;
+
+            object.scale.setScalar(scale);
+            center.multiplyScalar(scale);
+            object.position.sub(center);
+
+            // Apply current material settings
+            object.traverse((child) => {
+              if (child.isMesh) {
+                if (child.material) {
+                  if (Array.isArray(child.material)) {
+                    child.material.forEach(m => {
+                      m.metalness = currentMaterial.metalness;
+                      m.roughness = currentMaterial.roughness;
+                      m.side = THREE.DoubleSide;
+                    });
+                  } else {
+                    child.material.metalness = currentMaterial.metalness;
+                    child.material.roughness = currentMaterial.roughness;
+                    child.material.side = THREE.DoubleSide;
+                  }
+                }
+                child.castShadow = true;
+                child.receiveShadow = true;
+              }
+            });
+
+            URL.revokeObjectURL(url);
+            currentFileData = e.target.result;
+            setCurrentMesh(object, file.name, size, 'GLTF');
+            showToast('GLTF 模型加载成功', 'success');
+            showLoading(false);
+          }, undefined, (err) => {
+            showToast('GLTF 模型加载失败: ' + err.message, 'error');
+            URL.revokeObjectURL(url);
+            showLoading(false);
+          });
+        } catch (err) {
+          showToast('GLTF 模型加载失败: ' + err.message, 'error');
+          showLoading(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function loadFBX(file) {
+      showLoading(true);
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const loader = new FBXLoader();
+          const object = loader.parse(e.target.result, '');
+
+          const box = new THREE.Box3().setFromObject(object);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z) || 1;
+          const scale = 4 / maxDim;
+
+          object.scale.setScalar(scale);
+          center.multiplyScalar(scale);
+          object.position.sub(center);
+
+          // Apply current material settings
+          object.traverse((child) => {
+            if (child.isMesh) {
+              if (child.material) {
+                if (Array.isArray(child.material)) {
+                  child.material.forEach(m => {
+                    m.color.setHex(currentMaterial.color);
+                    m.metalness = currentMaterial.metalness;
+                    m.roughness = currentMaterial.roughness;
+                    m.side = THREE.DoubleSide;
+                  });
+                } else {
+                  child.material.color.setHex(currentMaterial.color);
+                  child.material.metalness = currentMaterial.metalness;
+                  child.material.roughness = currentMaterial.roughness;
+                  child.material.side = THREE.DoubleSide;
+                }
+              }
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          currentFileData = e.target.result;
+          setCurrentMesh(object, file.name, size, 'FBX');
+          showToast('FBX 模型加载成功', 'success');
+        } catch (err) {
+          showToast('FBX 模型加载失败: ' + err.message, 'error');
+          console.error('FBX load error:', err);
+        } finally {
+          showLoading(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
     }
 
     function setCurrentMesh(mesh, filename, originalSize, format) {
@@ -3746,6 +4067,11 @@
 
       addFileToList(filename, format);
       clearMeasure();
+
+      // Re-apply outline if enabled for the new model
+      if (edgeLinesVisible) {
+        updateEdgeLines();
+      }
     }
 
     function addFileToList(filename, format) {
@@ -4145,7 +4471,9 @@
       else if (ext === 'obj') loadOBJ(file);
       else if (ext === 'step' || ext === 'stp') loadSTEP(file);
       else if (ext === 'iges' || ext === 'igs') loadIGES(file);
-      else showToast('不支持的文件格式，请上传 STL / OBJ / STEP / IGES 文件', 'error');
+      else if (ext === 'gltf' || ext === 'glb') loadGLTF(file);
+      else if (ext === 'fbx') loadFBX(file);
+      else showToast('不支持的文件格式，请上传 STL / OBJ / STEP / IGES / GLTF / GLB / FBX 文件', 'error');
     }
 
     init();
