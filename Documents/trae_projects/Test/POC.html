@@ -1,0 +1,4482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAD 三维预览系统 | 工程数据可视化平台</title>
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border-color: #30363d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #484f58;
+      --accent-cyan: #58a6ff;
+      --accent-orange: #f0883e;
+      --accent-green: #3fb950;
+      --accent-purple: #bc8cff;
+      --accent-red: #f85149;
+      --accent-yellow: #d29922;
+      --glow-cyan: rgba(88, 166, 255, 0.15);
+      --glow-orange: rgba(240, 136, 62, 0.15);
+      --glow-green: rgba(63, 185, 80, 0.15);
+      --glow-yellow: rgba(210, 153, 34, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-container {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* ===== Sidebar ===== */
+    .sidebar {
+      width: 360px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-header .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px rgba(88, 166, 255, 0.3);
+    }
+
+    .sidebar-header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header .subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      padding-bottom: 80px;
+    }
+
+    .sidebar-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .sidebar-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .sidebar-content::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+
+    .panel {
+      margin-bottom: 20px;
+      animation: fadeInUp 0.4s ease both;
+    }
+    .panel:nth-child(1) { animation-delay: 0.05s; }
+    .panel:nth-child(2) { animation-delay: 0.1s; }
+    .panel:nth-child(3) { animation-delay: 0.15s; }
+    .panel:nth-child(4) { animation-delay: 0.2s; }
+    .panel:nth-child(5) { animation-delay: 0.25s; }
+    .panel:nth-child(6) { animation-delay: 0.3s; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .panel-indicator {
+      width: 4px;
+      height: 16px;
+      background: var(--accent-cyan);
+      border-radius: 2px;
+    }
+
+    .panel-header h2 {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===== Upload Zone ===== */
+    .upload-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      background: var(--bg-primary);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-zone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--glow-cyan), transparent);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent-cyan);
+    }
+    .upload-zone:hover::before, .upload-zone.dragover::before {
+      opacity: 1;
+    }
+
+    .upload-zone.dragover {
+      transform: scale(1.02);
+      border-style: solid;
+    }
+
+    .upload-zone > * { position: relative; z-index: 1; }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 14px;
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+
+    .upload-zone:hover .upload-icon {
+      background: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    .upload-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--text-secondary);
+      transition: stroke 0.25s ease;
+    }
+    .upload-zone:hover .upload-icon svg { stroke: white; }
+
+    .upload-zone p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .upload-zone .formats {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ===== Save Button ===== */
+    .save-btn {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .save-btn:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      background: var(--glow-green);
+    }
+
+    .save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ===== File List ===== */
+    .file-list {
+      margin-top: 14px;
+    }
+
+    .file-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideIn 0.3s ease;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .file-item:hover {
+      border-color: var(--accent-cyan);
+      background: var(--glow-cyan);
+    }
+
+    .file-item.active {
+      border-color: var(--accent-cyan);
+      background: var(--glow-cyan);
+      box-shadow: 0 0 0 1px var(--accent-cyan);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .file-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--glow-cyan);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 13px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .file-remove {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .file-remove:hover {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    /* ===== Toggle Switch ===== */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .toggle-row:hover {
+      border-color: var(--accent-cyan);
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      background: var(--bg-tertiary);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .toggle-switch.active {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(18px);
+    }
+
+    /* ===== View Buttons ===== */
+    .view-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .view-btn {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 10px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .view-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--glow-cyan), transparent);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .view-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+    .view-btn:hover::before { opacity: 1; }
+
+    .view-btn.active {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      color: var(--bg-primary);
+      box-shadow: 0 0 20px rgba(88, 166, 255, 0.3);
+    }
+    .view-btn.active::before { display: none; }
+
+    .view-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    .view-btn span {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== Measure Tool ===== */
+    .measure-mode-select {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .measure-mode-btn {
+      flex: 1;
+      padding: 8px 6px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .measure-mode-btn:hover {
+      border-color: var(--accent-orange);
+      color: var(--text-primary);
+    }
+
+    .measure-mode-btn.active {
+      background: var(--accent-orange);
+      border-color: var(--accent-orange);
+      color: var(--bg-primary);
+    }
+
+    .measure-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .measure-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--glow-orange), transparent);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .measure-btn:hover {
+      border-color: var(--accent-orange);
+      color: var(--text-primary);
+    }
+    .measure-btn:hover::before { opacity: 1; }
+
+    .measure-btn.active {
+      background: var(--accent-orange);
+      border-color: var(--accent-orange);
+      color: var(--bg-primary);
+      box-shadow: 0 0 20px rgba(240, 136, 62, 0.3);
+    }
+    .measure-btn.active::before { display: none; }
+
+    .measure-btn > * { position: relative; z-index: 1; }
+
+    .measure-result {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 12px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .measure-result.show { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .measure-result-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .measure-result-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent-orange);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .measure-result-unit {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-left: 4px;
+    }
+
+    .measure-axis-results {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .measure-axis-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .measure-axis-label {
+      color: var(--text-muted);
+    }
+
+    .measure-axis-value {
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .measure-points {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .measure-point {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      margin-bottom: 4px;
+    }
+
+    .measure-point-label {
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    /* ===== Background Settings ===== */
+    .bg-type-select {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .bg-type-btn {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .bg-type-btn:hover {
+      border-color: var(--accent-purple);
+      color: var(--text-primary);
+    }
+
+    .bg-type-btn.active {
+      background: var(--accent-purple);
+      border-color: var(--accent-purple);
+      color: var(--bg-primary);
+    }
+
+    .bg-settings-panel {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .bg-settings-panel.show {
+      display: block;
+    }
+
+    .color-picker-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .color-picker-row label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      min-width: 60px;
+    }
+
+    .color-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    input[type="color"] {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-primary);
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .color-hex {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 10px;
+      width: 80px;
+      text-align: center;
+    }
+
+    .bg-image-upload {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--bg-primary);
+    }
+
+    .bg-image-upload:hover {
+      border-color: var(--accent-purple);
+      background: var(--glow-cyan);
+    }
+
+    .bg-image-preview {
+      width: 100%;
+      height: 80px;
+      border-radius: 6px;
+      object-fit: cover;
+      margin-top: 8px;
+      display: none;
+      border: 1px solid var(--border-color);
+    }
+
+    .bg-image-preview.show {
+      display: block;
+    }
+
+    /* ===== Model Library Panel (Right Side) ===== */
+    .model-library {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 320px;
+      height: 100%;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border-color);
+      z-index: 30;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .model-library.open {
+      transform: translateX(0);
+    }
+
+    .model-library-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .model-library-header h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .library-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: none;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .library-close:hover {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    .model-library-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .library-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .library-item:hover {
+      border-color: var(--accent-cyan);
+      background: var(--glow-cyan);
+    }
+
+    .library-item.active {
+      border-color: var(--accent-cyan);
+      background: var(--glow-cyan);
+      box-shadow: 0 0 0 1px var(--accent-cyan);
+    }
+
+    .library-item-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--glow-cyan);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .library-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .library-item-name {
+      font-size: 12px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .library-item-date {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .library-item-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .library-item:hover .library-item-actions {
+      opacity: 1;
+    }
+
+    .library-item-action {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 12px;
+    }
+
+    .library-item-action:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .library-item-action.delete:hover {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    /* ===== Folder Styles ===== */
+    .folder-section {
+      margin-bottom: 8px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+    }
+
+    .folder-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .folder-header:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .folder-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--accent-yellow);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .folder-header.collapsed .folder-icon {
+      transform: rotate(-90deg);
+    }
+
+    .folder-header .folder-icon {
+      transform: rotate(0deg);
+    }
+
+    .folder-section.collapsed .folder-models {
+      display: none;
+    }
+
+    .folder-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+    }
+
+    .folder-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .folder-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      padding: 2px 8px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .folder-actions {
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .folder-header:hover .folder-actions {
+      opacity: 1;
+    }
+
+    .folder-action {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 11px;
+    }
+
+    .folder-action:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .folder-action.delete:hover {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    .folder-models {
+      padding: 0 8px 8px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: folderExpand 0.2s ease;
+    }
+
+    .folder-section.collapsed .folder-models {
+      display: none;
+    }
+
+    @keyframes folderExpand {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .folder-toggle-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+      margin-right: 4px;
+    }
+
+    .folder-header.collapsed .folder-toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .folder-toggle-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+    }
+
+    .folder-model-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .folder-model-item:hover {
+      background: var(--glow-cyan);
+      border-color: var(--accent-cyan);
+    }
+
+    .folder-model-item.active {
+      background: var(--glow-cyan);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 1px var(--accent-cyan);
+    }
+
+    .folder-model-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--glow-cyan);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .folder-model-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .folder-model-name {
+      font-size: 12px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .folder-model-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .folder-model-actions {
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .folder-model-item:hover .folder-model-actions {
+      opacity: 1;
+    }
+
+    /* ===== Folder Creation ===== */
+    .folder-create-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: nowrap;
+    }
+
+    .folder-create-input {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .folder-create-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .folder-create-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .folder-create-btn {
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      background: var(--accent-cyan);
+      border: none;
+      border-radius: 8px;
+      color: var(--bg-primary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .folder-create-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .folder-select-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .folder-select-row label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .folder-select {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .folder-select:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* ===== Material Settings ===== */
+    .material-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .material-row label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      min-width: 60px;
+    }
+
+    .slider-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .slider-value {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    /* ===== Custom Views ===== */
+    .custom-view-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .custom-view-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .custom-view-item:hover {
+      border-color: var(--accent-cyan);
+      background: var(--glow-cyan);
+      color: var(--text-primary);
+    }
+
+    .custom-view-item.active {
+      border-color: var(--accent-cyan);
+      background: var(--glow-cyan);
+      color: var(--text-primary);
+    }
+
+    .custom-view-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .custom-view-actions {
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .custom-view-item:hover .custom-view-actions {
+      opacity: 1;
+    }
+
+    .custom-view-action {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .custom-view-action:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .custom-view-action.delete:hover {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    .save-view-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .save-view-input {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 12px;
+      outline: none;
+    }
+
+    .save-view-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .save-view-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .save-view-btn {
+      padding: 8px 12px;
+      background: var(--accent-cyan);
+      border: none;
+      border-radius: 6px;
+      color: var(--bg-primary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .save-view-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* ===== Help Icon & Tooltip ===== */
+    .help-icon-btn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      width: 32px;
+      height: 32px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 15;
+      transition: all 0.2s ease;
+      pointer-events: auto;
+    }
+
+    .help-icon-btn:hover {
+      background: var(--accent-yellow);
+      color: var(--bg-primary);
+      border-color: var(--accent-yellow);
+    }
+
+    .help-tooltip {
+      position: absolute;
+      top: 56px;
+      left: 16px;
+      width: 280px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      z-index: 20;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      animation: fadeIn 0.2s ease;
+    }
+
+    .help-tooltip.show {
+      display: block;
+    }
+
+    .help-tooltip-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .help-tooltip-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .help-tooltip-close {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .help-tooltip-close:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    /* ===== Material Library ===== */
+    .material-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .material-item {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .material-item:hover {
+      transform: scale(1.05);
+      border-color: var(--accent-cyan);
+    }
+
+    .material-item.active {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 2px var(--glow-cyan);
+    }
+
+    .material-item::after {
+      content: attr(data-name);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 4px;
+      font-size: 9px;
+      color: white;
+      text-align: center;
+      background: rgba(0,0,0,0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ===== Clipping Plane ===== */
+    .clip-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .clip-axis-select {
+      display: flex;
+      gap: 6px;
+    }
+
+    .clip-axis-btn {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .clip-axis-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--text-primary);
+    }
+
+    .clip-axis-btn.active {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      color: var(--bg-primary);
+    }
+
+    .clip-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .clip-slider-row label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      min-width: 50px;
+    }
+
+    .clip-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .clip-action-btn {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .clip-action-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--text-primary);
+    }
+
+    .clip-action-btn.active {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      color: var(--bg-primary);
+    }
+
+    .library-toggle {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 64px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 25;
+      transition: all 0.2s ease;
+    }
+
+    .library-toggle:hover {
+      background: var(--accent-cyan);
+      color: var(--bg-primary);
+    }
+
+    .library-toggle svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ===== Edge Lines Toggle ===== */
+    .edge-toggle-btn {
+      position: absolute;
+      top: 56px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 15;
+      transition: all 0.2s ease;
+    }
+
+    .edge-toggle-btn:hover {
+      background: var(--accent-cyan);
+      color: var(--bg-primary);
+      border-color: var(--accent-cyan);
+    }
+
+    .edge-toggle-btn.active {
+      background: var(--accent-cyan);
+      color: var(--bg-primary);
+      border-color: var(--accent-cyan);
+    }
+
+    /* ===== Help Panel ===== */
+    .help-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .help-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+
+    .help-item:hover {
+      border-color: var(--accent-green);
+      background: var(--glow-green);
+    }
+
+    .help-key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      padding: 2px 6px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      flex-shrink: 0;
+    }
+
+    /* ===== Viewport ===== */
+    .viewport {
+      flex: 1;
+      position: relative;
+      background: var(--bg-primary);
+      overflow: hidden;
+    }
+
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .viewport-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* ===== Coordinate Display ===== */
+    .coord-display {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(22, 27, 34, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .coord-display.show {
+      opacity: 1;
+    }
+
+    .coord-display .coord-label {
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .coord-display .coord-value {
+      color: var(--accent-cyan);
+    }
+
+    /* ===== Model Info Badge ===== */
+    .model-info-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(22, 27, 34, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .model-info-badge.show { display: flex; }
+
+    .model-info-badge .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ===== Placeholder ===== */
+    .placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .placeholder.hidden {
+      opacity: 0;
+    }
+
+    .placeholder-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: var(--bg-tertiary);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .placeholder-icon svg {
+      width: 40px;
+      height: 40px;
+      stroke: var(--text-muted);
+    }
+
+    .placeholder h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .placeholder p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* ===== Loading Spinner ===== */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13, 17, 23, 0.8);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 20;
+      pointer-events: auto;
+    }
+
+    .loading-overlay.show { display: flex; }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* ===== Measure Labels (Screen Space) ===== */
+    .measure-label-container {
+      position: absolute;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .measure-label {
+      background: var(--accent-orange);
+      color: var(--bg-primary);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      white-space: nowrap;
+      box-shadow: 0 2px 12px rgba(240, 136, 62, 0.5);
+      position: relative;
+      transform: translate(-50%, -120%);
+    }
+
+    .measure-label::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid var(--accent-orange);
+    }
+
+    .measure-label-axis {
+      background: var(--accent-cyan);
+      box-shadow: 0 2px 12px rgba(88, 166, 255, 0.5);
+    }
+
+    .measure-label-axis::after {
+      border-top-color: var(--accent-cyan);
+    }
+
+    /* ===== Toast Notification ===== */
+    .toast-container {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: toastIn 0.3s ease;
+      pointer-events: auto;
+      max-width: 300px;
+    }
+
+    .toast.toast-out {
+      animation: toastOut 0.3s ease forwards;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(20px); }
+    }
+
+    .toast-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .toast-success .toast-icon { background: var(--glow-green); color: var(--accent-green); }
+    .toast-error .toast-icon { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
+    .toast-info .toast-icon { background: var(--glow-cyan); color: var(--accent-cyan); }
+
+    /* ===== Sidebar Toggle (Mobile) ===== */
+    .sidebar-toggle {
+      display: none;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 50;
+      width: 36px;
+      height: 36px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        z-index: 40;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        height: 100%;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-toggle { display: flex; }
+      .model-library { width: 300px; }
+    }
+
+    /* ===== Scrollbar ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div>
+            <h1>CAD 三维预览</h1>
+            <div class="subtitle">工程数据可视化平台 v2.0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- File Import Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator"></div>
+            <h2>文件导入</h2>
+          </div>
+          <div class="upload-zone" id="upload-zone">
+            <div class="upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <p>拖拽文件到此处或点击上传</p>
+            <p class="formats">.STL  .OBJ  .STEP  .IGES  .GLTF  .GLB  .FBX</p>
+          </div>
+          <input type="file" id="file-input" accept=".stl,.obj,.step,.stp,.iges,.igs,.gltf,.glb,.fbx" style="display:none">
+          <div class="file-list" id="file-list"></div>
+          <div class="folder-select-row" id="save-folder-row" style="display:none">
+            <label>保存到:</label>
+            <select class="folder-select" id="save-folder-select">
+              <option value="">默认目录</option>
+            </select>
+          </div>
+          <button class="save-btn" id="save-btn" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            保存到模型库
+          </button>
+        </div>
+
+        <!-- Background Settings Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: var(--accent-purple)"></div>
+            <h2>背景设置</h2>
+          </div>
+          <div class="bg-type-select">
+            <button class="bg-type-btn active" data-bg="color">纯色</button>
+            <button class="bg-type-btn" data-bg="gradient">渐变</button>
+            <button class="bg-type-btn" data-bg="image">图片</button>
+          </div>
+
+          <!-- Solid Color -->
+          <div class="bg-settings-panel show" id="bg-panel-color">
+            <div class="color-picker-row">
+              <label>背景色</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="bg-solid-color" value="#0d1117">
+                <span class="color-hex" id="bg-solid-hex">#0d1117</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gradient -->
+          <div class="bg-settings-panel" id="bg-panel-gradient">
+            <div class="color-picker-row">
+              <label>顶部颜色</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="bg-grad-start" value="#2d3b55">
+                <span class="color-hex" id="bg-grad-start-hex">#2d3b55</span>
+              </div>
+            </div>
+            <div class="color-picker-row">
+              <label>底部颜色</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="bg-grad-end" value="#0a0f1a">
+                <span class="color-hex" id="bg-grad-end-hex">#0a0f1a</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image -->
+          <div class="bg-settings-panel" id="bg-panel-image">
+            <div class="bg-image-upload" id="bg-image-upload">
+              <p style="font-size:12px;color:var(--text-secondary)">点击上传背景图片</p>
+              <p style="font-size:11px;color:var(--text-muted);margin-top:4px">支持 JPG, PNG</p>
+            </div>
+            <input type="file" id="bg-image-input" accept=".jpg,.jpeg,.png" style="display:none">
+            <img class="bg-image-preview" id="bg-image-preview" alt="背景预览">
+          </div>
+        </div>
+
+        <!-- Material Library Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: var(--accent-orange)"></div>
+            <h2>材质库</h2>
+          </div>
+          <div class="material-grid" id="material-grid"></div>
+          <div class="material-row">
+            <label>颜色</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="mat-color" value="#58a6ff">
+              <span class="color-hex" id="mat-color-hex">#58a6ff</span>
+            </div>
+          </div>
+          <div class="material-row">
+            <label>金属度</label>
+            <div class="slider-wrapper">
+              <input type="range" id="mat-metalness" min="0" max="100" value="30">
+              <span class="slider-value" id="mat-metalness-val">0.30</span>
+            </div>
+          </div>
+          <div class="material-row">
+            <label>粗糙度</label>
+            <div class="slider-wrapper">
+              <input type="range" id="mat-roughness" min="0" max="100" value="40">
+              <span class="slider-value" id="mat-roughness-val">0.40</span>
+            </div>
+          </div>
+          <div class="material-row">
+            <label>贴图</label>
+            <div class="slider-wrapper">
+              <input type="file" id="mat-texture-input" accept=".jpg,.jpeg,.png" style="display:none">
+              <button class="clip-action-btn" id="mat-texture-btn" style="flex:1">上传贴图</button>
+              <button class="clip-action-btn" id="mat-texture-clear" style="flex:1;display:none">清除贴图</button>
+            </div>
+          </div>
+          <div class="save-view-row">
+            <input type="text" class="save-view-input" id="custom-mat-name" placeholder="材质名称">
+            <button class="save-view-btn" id="save-mat-btn">保存材质</button>
+          </div>
+        </div>
+
+        <!-- Clipping Plane Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: var(--accent-red)"></div>
+            <h2>截面分析</h2>
+          </div>
+          <div class="clip-controls">
+            <div class="clip-axis-select">
+              <button class="clip-axis-btn" data-axis="x">X 轴</button>
+              <button class="clip-axis-btn" data-axis="y">Y 轴</button>
+              <button class="clip-axis-btn" data-axis="z">Z 轴</button>
+            </div>
+            <div class="clip-slider-row">
+              <label>位置</label>
+              <div class="slider-wrapper">
+                <input type="range" id="clip-slider" min="-100" max="100" value="0">
+                <span class="slider-value" id="clip-val">0</span>
+              </div>
+            </div>
+            <div class="clip-slider-row">
+              <label>厚度</label>
+              <div class="slider-wrapper">
+                <input type="range" id="clip-thickness" min="1" max="50" value="10">
+                <span class="slider-value" id="clip-thickness-val">0.10</span>
+              </div>
+            </div>
+            <div class="clip-actions">
+              <button class="clip-action-btn" id="clip-toggle">显示截面</button>
+              <button class="clip-action-btn" id="clip-flip">反转方向</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid & Axes Toggle Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: var(--accent-green)"></div>
+            <h2>显示设置</h2>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+              网格线
+            </span>
+            <div class="toggle-switch active" id="toggle-grid" data-on="true"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V3M3 21l6-6M3 21l18-18"/></svg>
+              坐标轴
+            </span>
+            <div class="toggle-switch active" id="toggle-axes" data-on="true"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16M4 20L20 4"/></svg>
+              轮廓线
+            </span>
+            <div class="toggle-switch" id="toggle-edges" data-on="false"></div>
+          </div>
+        </div>
+
+        <!-- View Switching Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: var(--accent-cyan)"></div>
+            <h2>视图切换</h2>
+          </div>
+          <div class="view-grid">
+            <button class="view-btn" data-view="front">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+              <span>前视图</span>
+            </button>
+            <button class="view-btn" data-view="back">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>后视图</span>
+            </button>
+            <button class="view-btn" data-view="left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 8l-6 4 6 4"/></svg>
+              <span>左视图</span>
+            </button>
+            <button class="view-btn" data-view="right">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 8l6 4-6 4"/></svg>
+              <span>右视图</span>
+            </button>
+            <button class="view-btn" data-view="top">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+              <span>顶视图</span>
+            </button>
+            <button class="view-btn" data-view="bottom">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8"/></svg>
+              <span>底视图</span>
+            </button>
+            <button class="view-btn active" data-view="iso">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z"/><path d="M12 12l8.66-5M12 12l-8.66-5M12 12v10"/></svg>
+              <span>等轴测</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Views Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: var(--accent-purple)"></div>
+            <h2>自定义视图</h2>
+          </div>
+          <div class="custom-view-list" id="custom-view-list"></div>
+          <div class="save-view-row">
+            <input type="text" class="save-view-input" id="save-view-input" placeholder="视图名称">
+            <button class="save-view-btn" id="save-view-btn">保存当前视图</button>
+          </div>
+        </div>
+
+        <!-- Measure Tool Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: var(--accent-orange)"></div>
+            <h2>测量工具</h2>
+          </div>
+          <div class="measure-mode-select">
+            <button class="measure-mode-btn active" data-mode="direct">最短距离</button>
+            <button class="measure-mode-btn" data-mode="axis">XYZ轴距离</button>
+          </div>
+          <button class="measure-btn" id="measure-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M3 12h18M3 18h18"/>
+            </svg>
+            <span>启用距离测量</span>
+          </button>
+          <div class="measure-result" id="measure-result">
+            <div class="measure-result-label">测量距离</div>
+            <div>
+              <span class="measure-result-value" id="distance-value">0.00</span>
+              <span class="measure-result-unit">mm</span>
+            </div>
+            <div class="measure-axis-results" id="measure-axis-results" style="display:none">
+              <div class="measure-axis-row">
+                <span class="measure-axis-label">ΔX (左右):</span>
+                <span class="measure-axis-value" id="axis-dx">0.00 mm</span>
+              </div>
+              <div class="measure-axis-row">
+                <span class="measure-axis-label">ΔY (上下):</span>
+                <span class="measure-axis-value" id="axis-dy">0.00 mm</span>
+              </div>
+              <div class="measure-axis-row">
+                <span class="measure-axis-label">ΔZ (前后):</span>
+                <span class="measure-axis-value" id="axis-dz">0.00 mm</span>
+              </div>
+            </div>
+            <div class="measure-points" id="measure-points"></div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Viewport -->
+    <main class="viewport">
+      <div id="canvas-container"></div>
+
+      <!-- Help Icon -->
+      <button class="help-icon-btn" id="help-icon-btn" title="操作指南">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </button>
+
+      <!-- Help Tooltip -->
+      <div class="help-tooltip" id="help-tooltip">
+        <div class="help-tooltip-header">
+          <h3>操作指南</h3>
+          <button class="help-tooltip-close" id="help-tooltip-close">×</button>
+        </div>
+        <div class="help-list">
+          <div class="help-item">
+            <span class="help-key">LMB</span>
+            <span>旋转视图（按住拖拽）</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">RMB</span>
+            <span>平移视图（按住拖拽）</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">Scroll</span>
+            <span>缩放视图</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">Click</span>
+            <span>测量模式下点击选取点</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">Esc</span>
+            <span>退出测量模式</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Library Toggle -->
+      <button class="library-toggle" id="library-toggle" title="模型库">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M3 12h18M3 18h18"/>
+        </svg>
+      </button>
+
+      <!-- Model Library Panel -->
+      <div class="model-library" id="model-library">
+        <div class="model-library-header">
+          <h2>模型库</h2>
+          <button class="library-close" id="library-close">×</button>
+        </div>
+        <div class="model-library-content" id="library-content">
+          <div class="folder-create-row">
+            <input type="text" class="folder-create-input" id="folder-create-input" placeholder="输入目录名称...">
+            <button class="folder-create-btn" id="folder-create-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              新建目录
+            </button>
+          </div>
+          <div id="library-folders"></div>
+        </div>
+      </div>
+
+      <div class="viewport-overlay">
+        <!-- Placeholder -->
+        <div class="placeholder" id="placeholder">
+          <div class="placeholder-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h3>三维模型预览</h3>
+          <p>导入 STL 或 OBJ 文件以查看三维模型</p>
+        </div>
+
+        <!-- Model Info Badge -->
+        <div class="model-info-badge" id="model-info-badge">
+          <div class="status-dot"></div>
+          <span id="model-info-text">未加载模型</span>
+        </div>
+
+        <!-- Coordinate Display -->
+        <div class="coord-display" id="coord-display">
+          <span class="coord-label">X:</span><span class="coord-value" id="coord-x">0.00</span>
+          <span class="coord-label" style="margin-left:12px">Y:</span><span class="coord-value" id="coord-y">0.00</span>
+          <span class="coord-label" style="margin-left:12px">Z:</span><span class="coord-value" id="coord-z">0.00</span>
+        </div>
+
+        <!-- Measure Labels Container -->
+        <div id="measure-labels-container"></div>
+
+        <!-- Toast Container -->
+        <div class="toast-container" id="toast-container"></div>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">正在加载模型...</div>
+      </div>
+
+      <!-- Sidebar Toggle (Mobile) -->
+      <button class="sidebar-toggle" id="sidebar-toggle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+      </button>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/occt-import-js@0.0.22/dist/occt-import-js.js"></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+
+    // ===== State =====
+    let scene, camera, renderer, controls;
+    let currentMesh = null;
+    let currentFileData = null;
+    let currentFileName = '';
+    let currentFileFormat = '';
+    let measureMode = false;
+    let measureModeType = 'direct';
+    let measurePoints = [];
+    let measureMarkers = [];
+    let measureLine = null;
+    let measureAxisLines = [];
+    let raycaster, mouse;
+    let gridHelper, axesHelper;
+    let isModelLoaded = false;
+    let bgTexture = null;
+    let modelDB = null;
+    let savedModels = [];
+    let folders = [];
+    let customViews = [];
+    let currentModelId = null;
+    let collapsedFolders = new Set();
+    let currentMaterial = { color: 0x58a6ff, metalness: 0.3, roughness: 0.4 };
+    let clipPlane = null;
+    let clipPlaneBack = null;
+    let clipHelper = null;
+    let clipHelperBack = null;
+    let clipEnabled = false;
+    let clipAxis = 'x';
+    let clipFlip = false;
+    let clipPosition = 0;
+    let clipThickness = 0.1;
+    let customMaterials = [];
+    let currentTexture = null;
+    let occtImporter = null;
+    let edgeLinesVisible = false;
+    let edgeLinesGroup = null;
+
+    const MATERIAL_LIBRARY = [
+      { name: '默认蓝', color: 0x58a6ff, metalness: 0.3, roughness: 0.4 },
+      { name: '金属银', color: 0xc0c0c0, metalness: 0.9, roughness: 0.2 },
+      { name: '黄金', color: 0xffd700, metalness: 1.0, roughness: 0.15 },
+      { name: '玫瑰金', color: 0xb76e79, metalness: 0.8, roughness: 0.2 },
+      { name: '铜', color: 0xb87333, metalness: 0.9, roughness: 0.25 },
+      { name: '钛合金', color: 0x8c9ba5, metalness: 0.7, roughness: 0.3 },
+      { name: '碳纤维', color: 0x1a1a1a, metalness: 0.1, roughness: 0.8 },
+      { name: '陶瓷白', color: 0xf5f5f5, metalness: 0.0, roughness: 0.1 },
+      { name: '翡翠绿', color: 0x00a86b, metalness: 0.2, roughness: 0.15 },
+      { name: '宝石红', color: 0xe0115f, metalness: 0.3, roughness: 0.2 },
+      { name: '深空灰', color: 0x4a4a4a, metalness: 0.6, roughness: 0.35 },
+      { name: '珍珠白', color: 0xfaf0e6, metalness: 0.1, roughness: 0.25 }
+    ];
+
+    const DB_NAME = 'CADViewerDB';
+    const DB_VERSION = 3;
+    const STORE_NAME = 'models';
+    const FOLDER_STORE_NAME = 'folders';
+    const VIEW_STORE_NAME = 'customViews';
+
+    // ===== Init =====
+    function init() {
+      const container = document.getElementById('canvas-container');
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0d1117);
+
+      // Apply default gradient background
+      setTimeout(() => {
+        document.querySelector('[data-bg="gradient"]').click();
+      }, 0);
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(5, 5, 5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.mouseButtons = {
+        LEFT: THREE.MOUSE.ROTATE,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.PAN
+      };
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0x404060, 1.2);
+      scene.add(ambientLight);
+
+      const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+      mainLight.position.set(5, 10, 7);
+      mainLight.castShadow = true;
+      mainLight.shadow.mapSize.width = 1024;
+      mainLight.shadow.mapSize.height = 1024;
+      scene.add(mainLight);
+
+      const fillLight = new THREE.DirectionalLight(0x58a6ff, 0.5);
+      fillLight.position.set(-5, 0, -5);
+      scene.add(fillLight);
+
+      const rimLight = new THREE.DirectionalLight(0xbc8cff, 0.3);
+      rimLight.position.set(0, -5, 5);
+      scene.add(rimLight);
+
+      // Grid & Axes - use brighter colors for visibility on dark background
+      gridHelper = new THREE.GridHelper(20, 20, 0x58a6ff, 0x484f58);
+      gridHelper.position.y = 0.01; // slightly above ground to avoid z-fighting
+      scene.add(gridHelper);
+
+      axesHelper = new THREE.AxesHelper(3);
+      axesHelper.position.y = 0.02; // slightly above grid
+      scene.add(axesHelper);
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      setupEventListeners();
+      setupBackgroundControls();
+      setupGridAxesControls();
+      setupMeasureModeControls();
+      setupLibraryControls();
+      setupMaterialControls();
+      setupCustomViewControls();
+      setupHelpControls();
+      setupClippingControls();
+      setupCustomMaterialUpload();
+      setupEdgeLinesControls();
+      renderMaterialLibrary();
+      initOCCT().catch(err => console.error('OCCT init failed:', err));
+      initDB().then(() => {
+        loadSavedModels();
+        loadCustomViews();
+      }).catch(err => console.error('DB init failed:', err));
+      animate();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+      updateMeasureLabels();
+    }
+
+    // ===== IndexedDB =====
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => { modelDB = request.result; resolve(); };
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+          }
+          if (!db.objectStoreNames.contains(FOLDER_STORE_NAME)) {
+            db.createObjectStore(FOLDER_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+          }
+          if (!db.objectStoreNames.contains(VIEW_STORE_NAME)) {
+            db.createObjectStore(VIEW_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+          }
+        };
+      });
+    }
+
+    async function saveModelToDB() {
+      if (!currentFileData || !currentFileName || !currentFileFormat) {
+        showToast('没有可保存的模型', 'error');
+        return;
+      }
+
+      const folderSelect = document.getElementById('save-folder-select');
+      const folderId = folderSelect.value ? parseInt(folderSelect.value) : null;
+
+      const model = {
+        name: currentFileName,
+        format: currentFileFormat,
+        size: currentFileData.byteLength || currentFileData.length,
+        data: currentFileData,
+        folderId: folderId,
+        timestamp: Date.now()
+      };
+
+      const tx = modelDB.transaction([STORE_NAME], 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.add(model);
+
+      request.onsuccess = () => {
+        model.id = request.result;
+        savedModels.push(model);
+        renderLibrary();
+        showToast('模型已保存到模型库', 'success');
+        document.getElementById('save-btn').disabled = true;
+      };
+      request.onerror = () => showToast('保存失败', 'error');
+    }
+
+    function loadSavedModels() {
+      const tx = modelDB.transaction([STORE_NAME, FOLDER_STORE_NAME], 'readonly');
+      const modelStore = tx.objectStore(STORE_NAME);
+      const folderStore = tx.objectStore(FOLDER_STORE_NAME);
+
+      const modelReq = modelStore.getAll();
+      const folderReq = folderStore.getAll();
+
+      modelReq.onsuccess = () => {
+        savedModels = modelReq.result;
+        folderReq.onsuccess = () => {
+          folders = folderReq.result;
+          renderLibrary();
+          updateFolderSelects();
+        };
+      };
+    }
+
+    function renderLibrary() {
+      const container = document.getElementById('library-folders');
+      if (savedModels.length === 0 && folders.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:12px;opacity:0.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <p>暂无保存的模型</p>
+            <p style="font-size:11px;margin-top:8px">导入模型后点击"保存到模型库"</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+
+      // Render folders with their models
+      folders.forEach(folder => {
+        const folderModels = savedModels.filter(m => m.folderId === folder.id);
+        const isCollapsed = collapsedFolders.has(folder.id);
+
+        const section = document.createElement('div');
+        section.className = 'folder-section' + (isCollapsed ? ' collapsed' : '');
+        section.dataset.folderId = folder.id;
+
+        const header = document.createElement('div');
+        header.className = 'folder-header' + (isCollapsed ? ' collapsed' : '');
+        header.innerHTML = `
+          <div class="folder-toggle-icon">
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
+          <div class="folder-icon">
+            <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+          </div>
+          <div class="folder-name" title="${folder.name}">${folder.name}</div>
+          <div class="folder-count">${folderModels.length}</div>
+          <div class="folder-actions">
+            <button class="folder-action rename" title="重命名">✎</button>
+            <button class="folder-action delete" title="删除">✕</button>
+          </div>
+        `;
+
+        header.querySelector('.rename').addEventListener('click', (e) => {
+          e.stopPropagation();
+          renameFolder(folder.id);
+        });
+        header.querySelector('.delete').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteFolder(folder.id);
+        });
+        header.addEventListener('click', () => toggleFolder(folder.id));
+
+        const modelsContainer = document.createElement('div');
+        modelsContainer.className = 'folder-models';
+        folderModels.forEach(model => {
+          modelsContainer.appendChild(createModelItem(model));
+        });
+
+        section.appendChild(header);
+        section.appendChild(modelsContainer);
+        container.appendChild(section);
+      });
+
+      // Render uncategorized models (no folder)
+      const uncategorized = savedModels.filter(m => !m.folderId);
+      if (uncategorized.length > 0 || folders.length === 0) {
+        const isCollapsed = collapsedFolders.has('default');
+        const section = document.createElement('div');
+        section.className = 'folder-section' + (isCollapsed ? ' collapsed' : '');
+        section.dataset.folderId = 'default';
+
+        const header = document.createElement('div');
+        header.className = 'folder-header' + (isCollapsed ? ' collapsed' : '');
+        header.innerHTML = `
+          <div class="folder-toggle-icon">
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </div>
+          <div class="folder-icon">
+            <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+          </div>
+          <div class="folder-name">默认目录</div>
+          <div class="folder-count">${uncategorized.length}</div>
+          <div class="folder-actions" style="opacity:0"></div>
+        `;
+        header.addEventListener('click', () => toggleFolder('default'));
+
+        const modelsContainer = document.createElement('div');
+        modelsContainer.className = 'folder-models';
+        uncategorized.forEach(model => {
+          modelsContainer.appendChild(createModelItem(model));
+        });
+
+        section.appendChild(header);
+        section.appendChild(modelsContainer);
+        container.appendChild(section);
+      }
+    }
+
+    function createModelItem(model) {
+      const item = document.createElement('div');
+      item.className = 'folder-model-item';
+      item.dataset.id = model.id;
+      if (model.id === currentModelId) item.classList.add('active');
+
+      const date = new Date(model.timestamp).toLocaleDateString('zh-CN');
+      item.innerHTML = `
+        <div class="folder-model-icon">${model.format}</div>
+        <div class="folder-model-info">
+          <div class="folder-model-name">${model.name}</div>
+          <div class="folder-model-meta">${date} · ${(model.size / 1024).toFixed(1)} KB</div>
+        </div>
+        <div class="folder-model-actions">
+          <button class="library-item-action move" title="移动">⇄</button>
+          <button class="library-item-action delete" title="删除">✕</button>
+        </div>
+      `;
+
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.library-item-action')) return;
+        loadModelFromDB(model.id);
+      });
+
+      item.querySelector('.move').addEventListener('click', (e) => {
+        e.stopPropagation();
+        moveModelToFolder(model.id);
+      });
+      item.querySelector('.delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteModel(model.id);
+      });
+
+      return item;
+    }
+
+    function toggleFolder(folderId) {
+      if (collapsedFolders.has(folderId)) {
+        collapsedFolders.delete(folderId);
+      } else {
+        collapsedFolders.add(folderId);
+      }
+      renderLibrary();
+    }
+
+    function loadModelFromDB(id) {
+      const tx = modelDB.transaction([STORE_NAME], 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.get(id);
+
+      request.onsuccess = () => {
+        const model = request.result;
+        if (!model) return;
+
+        currentModelId = id;
+        currentFileName = model.name;
+        currentFileFormat = model.format;
+        currentFileData = model.data;
+
+        // Update active state
+        document.querySelectorAll('.library-item').forEach(item => {
+          item.classList.toggle('active', parseInt(item.dataset.id) === id);
+        });
+
+        // Load model
+        if (model.format === 'STL') {
+          loadSTLFromData(model.data, model.name);
+        } else {
+          loadOBJFromData(model.data, model.name);
+        }
+
+        showToast(`已加载: ${model.name}`, 'success');
+      };
+    }
+
+    function deleteModel(id) {
+      const tx = modelDB.transaction([STORE_NAME], 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.delete(id);
+      savedModels = savedModels.filter(m => m.id !== id);
+      renderLibrary();
+      updateFolderSelects();
+      if (currentModelId === id) {
+        currentModelId = null;
+      }
+      showToast('模型已删除', 'info');
+    }
+
+    function createFolder(name) {
+      if (!name || name.trim() === '') {
+        showToast('请输入目录名称', 'error');
+        return;
+      }
+      const folder = { name: name.trim(), timestamp: Date.now() };
+      const tx = modelDB.transaction([FOLDER_STORE_NAME], 'readwrite');
+      const store = tx.objectStore(FOLDER_STORE_NAME);
+      const request = store.add(folder);
+
+      request.onsuccess = () => {
+        folder.id = request.result;
+        folders.push(folder);
+        renderLibrary();
+        updateFolderSelects();
+        document.getElementById('folder-create-input').value = '';
+        showToast('目录创建成功', 'success');
+      };
+      request.onerror = () => showToast('目录创建失败', 'error');
+    }
+
+    function renameFolder(id) {
+      const folder = folders.find(f => f.id === id);
+      if (!folder) return;
+      const newName = prompt('请输入新目录名称:', folder.name);
+      if (!newName || newName.trim() === '' || newName.trim() === folder.name) return;
+
+      folder.name = newName.trim();
+      const tx = modelDB.transaction([FOLDER_STORE_NAME], 'readwrite');
+      const store = tx.objectStore(FOLDER_STORE_NAME);
+      store.put(folder);
+
+      renderLibrary();
+      updateFolderSelects();
+      showToast('目录重命名成功', 'success');
+    }
+
+    function deleteFolder(id) {
+      const folder = folders.find(f => f.id === id);
+      if (!folder) return;
+      const hasModels = savedModels.some(m => m.folderId === id);
+      const msg = hasModels
+        ? `确定要删除目录 "${folder.name}" 吗？目录中的模型将移至默认目录。`
+        : `确定要删除目录 "${folder.name}" 吗？`;
+      if (!confirm(msg)) return;
+
+      // Move models to default (folderId = null)
+      const modelsToMove = savedModels.filter(m => m.folderId === id);
+      if (modelsToMove.length > 0) {
+        const tx = modelDB.transaction([STORE_NAME], 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        modelsToMove.forEach(m => {
+          m.folderId = null;
+          store.put(m);
+        });
+      }
+
+      // Delete folder
+      const tx2 = modelDB.transaction([FOLDER_STORE_NAME], 'readwrite');
+      const store2 = tx2.objectStore(FOLDER_STORE_NAME);
+      store2.delete(id);
+
+      folders = folders.filter(f => f.id !== id);
+      savedModels.forEach(m => { if (m.folderId === id) m.folderId = null; });
+      collapsedFolders.delete(id);
+
+      renderLibrary();
+      updateFolderSelects();
+      showToast('目录已删除', 'info');
+    }
+
+    function moveModelToFolder(modelId) {
+      const model = savedModels.find(m => m.id === modelId);
+      if (!model) return;
+
+      const options = folders.map(f => `${f.id}:${f.name}`).join('|');
+      const defaultOption = model.folderId ? '0:默认目录' : '';
+      const allOptions = defaultOption + (defaultOption && options ? '|' : '') + options;
+
+      if (!allOptions) {
+        showToast('没有其他目录可供移动', 'info');
+        return;
+      }
+
+      const choice = prompt(`请选择目标目录 (输入编号):\n${allOptions.split('|').map(o => {
+        const [id, name] = o.split(':');
+        return `${id} = ${name}`;
+      }).join('\n')}`);
+
+      if (choice === null) return;
+      const targetId = parseInt(choice);
+      if (isNaN(targetId)) {
+        showToast('无效的选择', 'error');
+        return;
+      }
+
+      const newFolderId = targetId === 0 ? null : targetId;
+      if (newFolderId !== null && !folders.some(f => f.id === newFolderId)) {
+        showToast('目录不存在', 'error');
+        return;
+      }
+
+      model.folderId = newFolderId;
+      const tx = modelDB.transaction([STORE_NAME], 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.put(model);
+
+      renderLibrary();
+      updateFolderSelects();
+      showToast('模型已移动', 'success');
+    }
+
+    function updateFolderSelects() {
+      // Update save folder select
+      const saveSelect = document.getElementById('save-folder-select');
+      const currentSaveValue = saveSelect.value;
+      saveSelect.innerHTML = '<option value="">默认目录</option>';
+      folders.forEach(folder => {
+        const opt = document.createElement('option');
+        opt.value = folder.id;
+        opt.textContent = folder.name;
+        saveSelect.appendChild(opt);
+      });
+      saveSelect.value = currentSaveValue;
+    }
+
+    // ===== Library Controls =====
+    function setupLibraryControls() {
+      const library = document.getElementById('model-library');
+      const toggle = document.getElementById('library-toggle');
+      const close = document.getElementById('library-close');
+
+      toggle.addEventListener('click', () => library.classList.toggle('open'));
+      close.addEventListener('click', () => library.classList.remove('open'));
+
+      document.getElementById('save-btn').addEventListener('click', saveModelToDB);
+
+      // Folder creation
+      const createInput = document.getElementById('folder-create-input');
+      const createBtn = document.getElementById('folder-create-btn');
+      createBtn.addEventListener('click', () => createFolder(createInput.value));
+      createInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') createFolder(createInput.value);
+      });
+    }
+
+    // ===== Background Settings =====
+    function setupBackgroundControls() {
+      const bgTypeBtns = document.querySelectorAll('.bg-type-btn');
+      const panels = {
+        color: document.getElementById('bg-panel-color'),
+        gradient: document.getElementById('bg-panel-gradient'),
+        image: document.getElementById('bg-panel-image')
+      };
+
+      bgTypeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          bgTypeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          Object.values(panels).forEach(p => p.classList.remove('show'));
+          panels[btn.dataset.bg].classList.add('show');
+          applyBackground();
+        });
+      });
+
+      const solidColor = document.getElementById('bg-solid-color');
+      const solidHex = document.getElementById('bg-solid-hex');
+      solidColor.addEventListener('input', () => {
+        solidHex.textContent = solidColor.value;
+        applyBackground();
+      });
+
+      const gradStart = document.getElementById('bg-grad-start');
+      const gradEnd = document.getElementById('bg-grad-end');
+      const gradStartHex = document.getElementById('bg-grad-start-hex');
+      const gradEndHex = document.getElementById('bg-grad-end-hex');
+
+      [gradStart, gradEnd].forEach(input => {
+        input.addEventListener('input', () => {
+          gradStartHex.textContent = gradStart.value;
+          gradEndHex.textContent = gradEnd.value;
+          applyBackground();
+        });
+      });
+
+      const bgImageUpload = document.getElementById('bg-image-upload');
+      const bgImageInput = document.getElementById('bg-image-input');
+      const bgImagePreview = document.getElementById('bg-image-preview');
+
+      bgImageUpload.addEventListener('click', () => bgImageInput.click());
+      bgImageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            bgImagePreview.src = ev.target.result;
+            bgImagePreview.classList.add('show');
+            applyBackground();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function applyBackground() {
+      const activeType = document.querySelector('.bg-type-btn.active').dataset.bg;
+
+      if (activeType === 'color') {
+        const color = document.getElementById('bg-solid-color').value;
+        scene.background = new THREE.Color(color);
+        if (bgTexture) { scene.background = new THREE.Color(color); bgTexture = null; }
+      } else if (activeType === 'gradient') {
+        const top = document.getElementById('bg-grad-start').value;
+        const bottom = document.getElementById('bg-grad-end').value;
+        createGradientBackground(top, bottom);
+      } else if (activeType === 'image') {
+        const preview = document.getElementById('bg-image-preview');
+        if (preview.src && preview.classList.contains('show')) {
+          const loader = new THREE.TextureLoader();
+          loader.load(preview.src, (texture) => {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            bgTexture = texture;
+            scene.background = texture;
+          });
+        }
+      }
+    }
+
+    function createGradientBackground(topColor, bottomColor) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 2;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, 1024);
+      gradient.addColorStop(0, topColor);
+      gradient.addColorStop(1, bottomColor);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 2, 1024);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      bgTexture = texture;
+      scene.background = texture;
+    }
+
+    // ===== Grid & Axes Toggle =====
+    function setupGridAxesControls() {
+      const toggleGrid = document.getElementById('toggle-grid');
+      const toggleAxes = document.getElementById('toggle-axes');
+      const toggleEdges = document.getElementById('toggle-edges');
+
+      toggleGrid.addEventListener('click', () => {
+        const isOn = toggleGrid.dataset.on === 'true';
+        toggleGrid.dataset.on = (!isOn).toString();
+        toggleGrid.classList.toggle('active');
+        gridHelper.visible = !isOn;
+      });
+
+      toggleAxes.addEventListener('click', () => {
+        const isOn = toggleAxes.dataset.on === 'true';
+        toggleAxes.dataset.on = (!isOn).toString();
+        toggleAxes.classList.toggle('active');
+        axesHelper.visible = !isOn;
+      });
+
+      toggleEdges.addEventListener('click', () => {
+        const isOn = toggleEdges.dataset.on === 'true';
+        toggleEdges.dataset.on = (!isOn).toString();
+        toggleEdges.classList.toggle('active');
+        edgeLinesVisible = !isOn;
+        updateEdgeLines();
+      });
+    }
+
+    // ===== Measure Mode Controls =====
+    function setupMeasureModeControls() {
+      const modeBtns = document.querySelectorAll('.measure-mode-btn');
+      modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          modeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          measureModeType = btn.dataset.mode;
+          if (measureMode) {
+            clearMeasure();
+            showToast(measureModeType === 'direct' ? '已切换为最短距离模式' : '已切换为XYZ轴距离模式', 'info');
+          }
+        });
+      });
+    }
+
+    // ===== Material Controls =====
+    function setupMaterialControls() {
+      const colorInput = document.getElementById('mat-color');
+      const colorHex = document.getElementById('mat-color-hex');
+      const metalnessInput = document.getElementById('mat-metalness');
+      const metalnessVal = document.getElementById('mat-metalness-val');
+      const roughnessInput = document.getElementById('mat-roughness');
+      const roughnessVal = document.getElementById('mat-roughness-val');
+
+      colorInput.addEventListener('input', () => {
+        colorHex.textContent = colorInput.value;
+        currentMaterial.color = parseInt(colorInput.value.replace('#', '0x'));
+        applyMaterial();
+      });
+
+      metalnessInput.addEventListener('input', () => {
+        const val = metalnessInput.value / 100;
+        metalnessVal.textContent = val.toFixed(2);
+        currentMaterial.metalness = val;
+        applyMaterial();
+      });
+
+      roughnessInput.addEventListener('input', () => {
+        const val = roughnessInput.value / 100;
+        roughnessVal.textContent = val.toFixed(2);
+        currentMaterial.roughness = val;
+        applyMaterial();
+      });
+    }
+
+    function createMaterial() {
+      const params = {
+        color: currentMaterial.color,
+        metalness: currentMaterial.metalness,
+        roughness: currentMaterial.roughness,
+        envMapIntensity: 1,
+        side: THREE.DoubleSide
+      };
+
+      if (currentTexture) {
+        params.map = currentTexture;
+      }
+
+      if (clipEnabled && clipPlane) {
+        params.clippingPlanes = [clipPlane];
+        if (clipPlaneBack) params.clippingPlanes.push(clipPlaneBack);
+      }
+
+      return new THREE.MeshStandardMaterial(params);
+    }
+
+    function applyMaterial() {
+      if (!currentMesh) return;
+      const mat = createMaterial();
+
+      if (currentMesh.isMesh) {
+        currentMesh.material = mat;
+      } else {
+        currentMesh.traverse(child => {
+          if (child.isMesh) {
+            child.material = createMaterial();
+          }
+        });
+      }
+    }
+
+    function renderMaterialLibrary() {
+      const grid = document.getElementById('material-grid');
+      grid.innerHTML = '';
+      MATERIAL_LIBRARY.forEach((mat, index) => {
+        const item = document.createElement('div');
+        item.className = 'material-item';
+        item.dataset.index = index;
+        item.dataset.name = mat.name;
+        const hex = '#' + mat.color.toString(16).padStart(6, '0');
+        item.style.background = hex;
+        if (mat.name === '默认蓝') item.classList.add('active');
+
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.material-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          currentMaterial = { color: mat.color, metalness: mat.metalness, roughness: mat.roughness };
+
+          // Update controls
+          document.getElementById('mat-color').value = hex;
+          document.getElementById('mat-color-hex').textContent = hex;
+          document.getElementById('mat-metalness').value = Math.round(mat.metalness * 100);
+          document.getElementById('mat-metalness-val').textContent = mat.metalness.toFixed(2);
+          document.getElementById('mat-roughness').value = Math.round(mat.roughness * 100);
+          document.getElementById('mat-roughness-val').textContent = mat.roughness.toFixed(2);
+
+          applyMaterial();
+          showToast(`已应用材质: ${mat.name}`, 'success');
+        });
+
+        grid.appendChild(item);
+      });
+    }
+
+    // ===== Custom Material Upload =====
+    function setupCustomMaterialUpload() {
+      const textureBtn = document.getElementById('mat-texture-btn');
+      const textureInput = document.getElementById('mat-texture-input');
+      const textureClear = document.getElementById('mat-texture-clear');
+      const saveMatBtn = document.getElementById('save-mat-btn');
+
+      textureBtn.addEventListener('click', () => textureInput.click());
+
+      textureInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const loader = new THREE.TextureLoader();
+          loader.load(ev.target.result, (texture) => {
+            currentTexture = texture;
+            textureBtn.textContent = '已上传';
+            textureClear.style.display = 'block';
+            applyMaterial();
+            showToast('贴图已应用', 'success');
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+
+      textureClear.addEventListener('click', () => {
+        currentTexture = null;
+        textureBtn.textContent = '上传贴图';
+        textureClear.style.display = 'none';
+        textureInput.value = '';
+        applyMaterial();
+        showToast('贴图已清除', 'info');
+      });
+
+      saveMatBtn.addEventListener('click', () => {
+        const nameInput = document.getElementById('custom-mat-name');
+        const name = nameInput.value.trim();
+        if (!name) {
+          showToast('请输入材质名称', 'error');
+          return;
+        }
+
+        const mat = {
+          name: name,
+          color: currentMaterial.color,
+          metalness: currentMaterial.metalness,
+          roughness: currentMaterial.roughness,
+          timestamp: Date.now()
+        };
+
+        customMaterials.push(mat);
+        renderCustomMaterial(mat);
+        nameInput.value = '';
+        showToast('自定义材质已保存', 'success');
+      });
+    }
+
+    function renderCustomMaterial(mat) {
+      const grid = document.getElementById('material-grid');
+      const item = document.createElement('div');
+      item.className = 'material-item';
+      item.dataset.name = mat.name;
+      const hex = '#' + mat.color.toString(16).padStart(6, '0');
+      item.style.background = hex;
+
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.material-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        currentMaterial = { color: mat.color, metalness: mat.metalness, roughness: mat.roughness };
+
+        document.getElementById('mat-color').value = hex;
+        document.getElementById('mat-color-hex').textContent = hex;
+        document.getElementById('mat-metalness').value = Math.round(mat.metalness * 100);
+        document.getElementById('mat-metalness-val').textContent = mat.metalness.toFixed(2);
+        document.getElementById('mat-roughness').value = Math.round(mat.roughness * 100);
+        document.getElementById('mat-roughness-val').textContent = mat.roughness.toFixed(2);
+
+        applyMaterial();
+        showToast(`已应用材质: ${mat.name}`, 'success');
+      });
+
+      grid.appendChild(item);
+    }
+
+    // ===== Edge Lines Controls =====
+    function setupEdgeLinesControls() {
+      // Edge lines toggle is now handled in setupGridAxesControls via the Display Settings panel
+      // This function is kept for compatibility but does nothing
+    }
+
+    function updateEdgeLines() {
+      // Remove existing edge lines
+      if (edgeLinesGroup) {
+        scene.remove(edgeLinesGroup);
+        edgeLinesGroup = null;
+      }
+
+      if (!edgeLinesVisible || !currentMesh) return;
+
+      edgeLinesGroup = new THREE.Group();
+
+      // Collect all meshes and compute merged bounding sphere for culling
+      const meshes = [];
+      currentMesh.traverse((child) => {
+        if (child.isMesh && child.geometry) {
+          meshes.push(child);
+        }
+      });
+
+      if (meshes.length === 0) return;
+
+      // For single mesh: use simple outline approach
+      // For multiple meshes: compute outer silhouette only
+      const isSingleMesh = meshes.length === 1;
+
+      meshes.forEach((child) => {
+        const geo = child.geometry;
+
+        // Skip if geometry has too many vertices (performance guard)
+        const vertexCount = geo.attributes.position.count;
+        if (vertexCount > 500000) return;
+
+        let outlineGeo;
+
+        if (isSingleMesh) {
+          // For single mesh: use EdgesGeometry with higher threshold for cleaner outline
+          outlineGeo = new THREE.EdgesGeometry(geo, 30);
+        } else {
+          // For complex models: only show outline for larger parts (>5% of total vertices)
+          const totalVertices = meshes.reduce((sum, m) => sum + m.geometry.attributes.position.count, 0);
+          if (vertexCount < totalVertices * 0.05) return;
+          outlineGeo = new THREE.EdgesGeometry(geo, 45);
+        }
+
+        // Skip if no edges generated
+        if (!outlineGeo.attributes.position || outlineGeo.attributes.position.count === 0) {
+          outlineGeo.dispose();
+          return;
+        }
+
+        const edgesMat = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.5,
+          linewidth: 1
+        });
+        const edges = new THREE.LineSegments(outlineGeo, edgesMat);
+
+        // Match transform
+        edges.position.copy(child.position);
+        edges.rotation.copy(child.rotation);
+        edges.scale.copy(child.scale);
+        edges.matrix.copy(child.matrix);
+        edges.matrixWorld.copy(child.matrixWorld);
+
+        edgeLinesGroup.add(edges);
+      });
+
+      scene.add(edgeLinesGroup);
+    }
+
+    // ===== Help Controls =====
+    function setupHelpControls() {
+      const helpBtn = document.getElementById('help-icon-btn');
+      const helpTooltip = document.getElementById('help-tooltip');
+      const helpClose = document.getElementById('help-tooltip-close');
+
+      helpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        helpTooltip.classList.toggle('show');
+      });
+
+      helpClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        helpTooltip.classList.remove('show');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!helpTooltip.contains(e.target) && e.target !== helpBtn) {
+          helpTooltip.classList.remove('show');
+        }
+      });
+    }
+
+    // ===== Clipping Plane Controls =====
+    function setupClippingControls() {
+      const axisBtns = document.querySelectorAll('.clip-axis-btn');
+      const slider = document.getElementById('clip-slider');
+      const sliderVal = document.getElementById('clip-val');
+      const thicknessSlider = document.getElementById('clip-thickness');
+      const thicknessVal = document.getElementById('clip-thickness-val');
+      const toggleBtn = document.getElementById('clip-toggle');
+      const flipBtn = document.getElementById('clip-flip');
+
+      axisBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          axisBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          clipAxis = btn.dataset.axis;
+          updateClipPlane();
+        });
+      });
+
+      slider.addEventListener('input', () => {
+        clipPosition = parseInt(slider.value) / 100;
+        sliderVal.textContent = slider.value;
+        updateClipPlane();
+      });
+
+      thicknessSlider.addEventListener('input', () => {
+        clipThickness = parseInt(thicknessSlider.value) / 100;
+        thicknessVal.textContent = clipThickness.toFixed(2);
+        updateClipPlane();
+      });
+
+      toggleBtn.addEventListener('click', () => {
+        clipEnabled = !clipEnabled;
+        toggleBtn.classList.toggle('active', clipEnabled);
+        toggleBtn.textContent = clipEnabled ? '隐藏截面' : '显示截面';
+        updateClipPlane();
+        applyMaterial();
+        if (clipEnabled) {
+          renderer.localClippingEnabled = true;
+          showToast('截面分析已启用', 'info');
+        } else {
+          renderer.localClippingEnabled = false;
+          showToast('截面分析已关闭', 'info');
+        }
+      });
+
+      flipBtn.addEventListener('click', () => {
+        clipFlip = !clipFlip;
+        flipBtn.classList.toggle('active', clipFlip);
+        updateClipPlane();
+      });
+    }
+
+    function updateClipPlane() {
+      if (!clipPlane) clipPlane = new THREE.Plane();
+      if (!clipPlaneBack) clipPlaneBack = new THREE.Plane();
+
+      const pos = clipFlip ? -clipPosition : clipPosition;
+      const normal = new THREE.Vector3();
+
+      switch(clipAxis) {
+        case 'x': normal.set(clipFlip ? 1 : -1, 0, 0); break;
+        case 'y': normal.set(0, clipFlip ? 1 : -1, 0); break;
+        case 'z': normal.set(0, 0, clipFlip ? 1 : -1); break;
+      }
+
+      // Front plane
+      clipPlane.setFromNormalAndCoplanarPoint(normal, new THREE.Vector3(
+        clipAxis === 'x' ? pos : 0,
+        clipAxis === 'y' ? pos : 0,
+        clipAxis === 'z' ? pos : 0
+      ));
+
+      // Back plane (for thickness)
+      const backNormal = normal.clone().negate();
+      const backPos = pos - clipThickness * (clipFlip ? -1 : 1);
+      clipPlaneBack.setFromNormalAndCoplanarPoint(backNormal, new THREE.Vector3(
+        clipAxis === 'x' ? backPos : 0,
+        clipAxis === 'y' ? backPos : 0,
+        clipAxis === 'z' ? backPos : 0
+      ));
+
+      // Clear old helpers
+      if (clipHelper) { scene.remove(clipHelper); clipHelper = null; }
+      if (clipHelperBack) { scene.remove(clipHelperBack); clipHelperBack = null; }
+
+      if (clipEnabled && currentMesh) {
+        const box = new THREE.Box3().setFromObject(currentMesh);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxSize = Math.max(size.x, size.y, size.z);
+
+        const helperSize = maxSize * 1.5;
+
+        // Front helper
+        const helperPos = new THREE.Vector3(center.x, center.y, center.z);
+        if (clipAxis === 'x') helperPos.x = pos;
+        if (clipAxis === 'y') helperPos.y = pos;
+        if (clipAxis === 'z') helperPos.z = pos;
+
+        const planeGeo = new THREE.PlaneGeometry(helperSize, helperSize);
+        const planeMat = new THREE.MeshBasicMaterial({
+          color: 0x58a6ff,
+          transparent: true,
+          opacity: 0.2,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        });
+        clipHelper = new THREE.Mesh(planeGeo, planeMat);
+        clipHelper.position.copy(helperPos);
+        if (clipAxis === 'x') clipHelper.rotation.y = Math.PI / 2;
+        if (clipAxis === 'z') clipHelper.rotation.x = Math.PI / 2;
+        scene.add(clipHelper);
+
+        // Back helper
+        const backHelperPos = new THREE.Vector3(center.x, center.y, center.z);
+        const actualBackPos = pos - clipThickness * (clipFlip ? -1 : 1);
+        if (clipAxis === 'x') backHelperPos.x = actualBackPos;
+        if (clipAxis === 'y') backHelperPos.y = actualBackPos;
+        if (clipAxis === 'z') backHelperPos.z = actualBackPos;
+
+        const backPlaneMat = new THREE.MeshBasicMaterial({
+          color: 0xff6b6b,
+          transparent: true,
+          opacity: 0.15,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        });
+        clipHelperBack = new THREE.Mesh(planeGeo.clone(), backPlaneMat);
+        clipHelperBack.position.copy(backHelperPos);
+        if (clipAxis === 'x') clipHelperBack.rotation.y = Math.PI / 2;
+        if (clipAxis === 'z') clipHelperBack.rotation.x = Math.PI / 2;
+        scene.add(clipHelperBack);
+
+        applyMaterial();
+      }
+    }
+
+    // ===== Custom Views =====
+    function setupCustomViewControls() {
+      document.getElementById('save-view-btn').addEventListener('click', saveCustomView);
+      document.getElementById('save-view-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveCustomView();
+      });
+    }
+
+    function saveCustomView() {
+      const input = document.getElementById('save-view-input');
+      const name = input.value.trim();
+      if (!name) {
+        showToast('请输入视图名称', 'error');
+        return;
+      }
+
+      const view = {
+        name: name,
+        position: {
+          x: camera.position.x,
+          y: camera.position.y,
+          z: camera.position.z
+        },
+        target: {
+          x: controls.target.x,
+          y: controls.target.y,
+          z: controls.target.z
+        },
+        timestamp: Date.now()
+      };
+
+      const tx = modelDB.transaction([VIEW_STORE_NAME], 'readwrite');
+      const store = tx.objectStore(VIEW_STORE_NAME);
+      const request = store.add(view);
+
+      request.onsuccess = () => {
+        view.id = request.result;
+        customViews.push(view);
+        renderCustomViews();
+        input.value = '';
+        showToast('自定义视图已保存', 'success');
+      };
+      request.onerror = () => showToast('保存失败', 'error');
+    }
+
+    function loadCustomViews() {
+      const tx = modelDB.transaction([VIEW_STORE_NAME], 'readonly');
+      const store = tx.objectStore(VIEW_STORE_NAME);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        customViews = request.result;
+        renderCustomViews();
+      };
+    }
+
+    function renderCustomViews() {
+      const container = document.getElementById('custom-view-list');
+      if (customViews.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:8px">暂无自定义视图</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      customViews.forEach(view => {
+        const item = document.createElement('div');
+        item.className = 'custom-view-item';
+        item.dataset.id = view.id;
+        item.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="custom-view-name">${view.name}</span>
+          <div class="custom-view-actions">
+            <button class="custom-view-action delete" title="删除">✕</button>
+          </div>
+        `;
+
+        item.addEventListener('click', (e) => {
+          if (e.target.closest('.custom-view-action')) return;
+          applyCustomView(view.id);
+        });
+
+        item.querySelector('.delete').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteCustomView(view.id);
+        });
+
+        container.appendChild(item);
+      });
+    }
+
+    function applyCustomView(id) {
+      const view = customViews.find(v => v.id === id);
+      if (!view) return;
+
+      const startPos = camera.position.clone();
+      const startTarget = controls.target.clone();
+      const endPos = new THREE.Vector3(view.position.x, view.position.y, view.position.z);
+      const endTarget = new THREE.Vector3(view.target.x, view.target.y, view.target.z);
+      const duration = 500;
+      const startTime = performance.now();
+
+      function animateView(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        camera.position.lerpVectors(startPos, endPos, eased);
+        controls.target.lerpVectors(startTarget, endTarget, eased);
+        controls.update();
+
+        if (progress < 1) requestAnimationFrame(animateView);
+      }
+      requestAnimationFrame(animateView);
+
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.custom-view-item').forEach(item => item.classList.remove('active'));
+      document.querySelector(`.custom-view-item[data-id="${id}"]`)?.classList.add('active');
+
+      showToast(`已切换: ${view.name}`, 'success');
+    }
+
+    function deleteCustomView(id) {
+      const tx = modelDB.transaction([VIEW_STORE_NAME], 'readwrite');
+      const store = tx.objectStore(VIEW_STORE_NAME);
+      store.delete(id);
+      customViews = customViews.filter(v => v.id !== id);
+      renderCustomViews();
+      showToast('视图已删除', 'info');
+    }
+
+    // ===== File Loading =====
+    function loadSTL(file) {
+      showLoading(true);
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          currentFileData = e.target.result;
+          currentFileName = file.name;
+          currentFileFormat = 'STL';
+          loadSTLFromData(currentFileData, file.name);
+          showToast('模型加载成功', 'success');
+        } catch (err) {
+          showToast('模型加载失败: ' + err.message, 'error');
+        } finally {
+          showLoading(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function loadOBJ(file) {
+      showLoading(true);
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          currentFileData = e.target.result;
+          currentFileName = file.name;
+          currentFileFormat = 'OBJ';
+          loadOBJFromData(currentFileData, file.name);
+          showToast('模型加载成功', 'success');
+        } catch (err) {
+          showToast('模型加载失败: ' + err.message, 'error');
+        } finally {
+          showLoading(false);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function loadSTLFromData(data, filename) {
+      try {
+        const loader = new STLLoader();
+        const geometry = loader.parse(data);
+
+        // Performance: simplify large geometries
+        const vertexCount = geometry.attributes.position.count;
+        if (vertexCount > 300000) {
+          showToast(`模型顶点数较多 (${(vertexCount/1000).toFixed(0)}K)，正在优化...`, 'info');
+        }
+
+        geometry.computeBoundingBox();
+        const bbox = geometry.boundingBox;
+        const size = bbox.getSize(new THREE.Vector3());
+        const center = bbox.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 4 / maxDim;
+        geometry.scale(scale, scale, scale);
+        center.multiplyScalar(scale);
+
+        const material = new THREE.MeshStandardMaterial({
+          color: currentMaterial.color,
+          metalness: currentMaterial.metalness,
+          roughness: currentMaterial.roughness,
+          envMapIntensity: 1,
+          side: THREE.DoubleSide
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.sub(center);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        setCurrentMesh(mesh, filename, size, 'STL');
+      } catch (err) {
+        showToast('模型解析失败: ' + err.message, 'error');
+      }
+    }
+
+    function loadOBJFromData(data, filename) {
+      try {
+        const loader = new OBJLoader();
+        const object = loader.parse(data);
+
+        const box = new THREE.Box3().setFromObject(object);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 4 / maxDim;
+
+        object.scale.setScalar(scale);
+        center.multiplyScalar(scale);
+        object.position.sub(center);
+
+        object.traverse(function(child) {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: currentMaterial.color,
+              metalness: currentMaterial.metalness,
+              roughness: currentMaterial.roughness,
+              side: THREE.DoubleSide
+            });
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        setCurrentMesh(object, filename, size, 'OBJ');
+      } catch (err) {
+        showToast('模型解析失败: ' + err.message, 'error');
+      }
+    }
+
+    function loadSTEP(file) {
+      if (!occtImporter) {
+        showToast('STEP 加载器尚未初始化，请稍后重试', 'error');
+        return;
+      }
+      showLoading(true);
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const result = occtImporter.ReadStepFile(new Uint8Array(e.target.result), null);
+          processOCCTResult(result, file.name, 'STEP');
+        } catch (err) {
+          showToast('STEP 模型加载失败: ' + err.message, 'error');
+          console.error('STEP load error:', err);
+        } finally {
+          showLoading(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function loadIGES(file) {
+      if (!occtImporter) {
+        showToast('IGES 加载器尚未初始化，请稍后重试', 'error');
+        return;
+      }
+      showLoading(true);
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const result = occtImporter.ReadIgesFile(new Uint8Array(e.target.result), null);
+          processOCCTResult(result, file.name, 'IGES');
+        } catch (err) {
+          showToast('IGES 模型加载失败: ' + err.message, 'error');
+          console.error('IGES load error:', err);
+        } finally {
+          showLoading(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function processOCCTResult(result, filename, format) {
+      if (!result || !result.success) {
+        showToast('模型解析失败：' + (result ? result.error || '未知错误' : '无返回结果'), 'error');
+        return;
+      }
+
+      if (!result.meshes || result.meshes.length === 0) {
+        showToast('模型解析失败：无有效网格数据', 'error');
+        return;
+      }
+
+      // Performance check
+      const totalVertices = result.meshes.reduce((sum, m) => {
+        return sum + (m.attributes && m.attributes.position ? m.attributes.position.array.length / 3 : 0);
+      }, 0);
+      if (totalVertices > 500000) {
+        showToast(`模型顶点数较多 (${(totalVertices/1000).toFixed(0)}K)，加载可能需要一些时间...`, 'info');
+      }
+
+      const group = new THREE.Group();
+      const allPositions = [];
+
+      // Process all meshes, using root node hierarchy if available
+      const meshesToProcess = [];
+      if (result.root) {
+        collectMeshesFromNode(result.root, result.meshes, meshesToProcess);
+      } else {
+        result.meshes.forEach((m, i) => meshesToProcess.push({ meshData: m, index: i }));
+      }
+
+      // Process meshes in chunks to avoid blocking UI
+      const CHUNK_SIZE = 50;
+      let processedCount = 0;
+
+      function processChunk() {
+        const end = Math.min(processedCount + CHUNK_SIZE, meshesToProcess.length);
+
+        for (let i = processedCount; i < end; i++) {
+          const { meshData } = meshesToProcess[i];
+          if (!meshData.attributes || !meshData.attributes.position || !meshData.attributes.position.array) {
+            continue;
+          }
+
+          const geometry = new THREE.BufferGeometry();
+          const vertices = new Float32Array(meshData.attributes.position.array);
+          geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+          if (meshData.index && meshData.index.array) {
+            const indices = new Uint32Array(meshData.index.array);
+            geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+          }
+
+          if (meshData.attributes.normal && meshData.attributes.normal.array) {
+            const normals = new Float32Array(meshData.attributes.normal.array);
+            geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+          } else {
+            geometry.computeVertexNormals();
+          }
+
+          // Use mesh color if available
+          let matColor = currentMaterial.color;
+          if (meshData.color && meshData.color.length >= 3) {
+            matColor = new THREE.Color(meshData.color[0], meshData.color[1], meshData.color[2]);
+          }
+
+          const material = new THREE.MeshStandardMaterial({
+            color: matColor,
+            metalness: currentMaterial.metalness,
+            roughness: currentMaterial.roughness,
+            side: THREE.DoubleSide
+          });
+
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          group.add(mesh);
+
+          // Collect positions for bounding box
+          for (let j = 0; j < vertices.length; j += 3) {
+            allPositions.push(vertices[j], vertices[j+1], vertices[j+2]);
+          }
+        }
+
+        processedCount = end;
+
+        if (processedCount < meshesToProcess.length) {
+          // Yield to UI thread
+          setTimeout(processChunk, 0);
+        } else {
+          finishProcessing();
+        }
+      }
+
+      function finishProcessing() {
+        if (allPositions.length === 0) {
+          showToast('模型解析失败：无有效顶点数据', 'error');
+          showLoading(false);
+          return;
+        }
+
+        // Compute bounding box
+        const box = new THREE.Box3();
+        const tempGeo = new THREE.BufferGeometry();
+        tempGeo.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
+        box.setFromBufferAttribute(tempGeo.attributes.position);
+
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        const scale = 4 / maxDim;
+
+        group.scale.setScalar(scale);
+        center.multiplyScalar(scale);
+        group.position.sub(center);
+
+        currentFileData = result;
+        currentFileName = filename;
+        currentFileFormat = format;
+
+        setCurrentMesh(group, filename, size, format);
+        showToast(format + ' 模型加载成功', 'success');
+        showLoading(false);
+      }
+
+      processChunk();
+    }
+
+    function collectMeshesFromNode(node, allMeshes, output) {
+      if (node.meshes && Array.isArray(node.meshes)) {
+        node.meshes.forEach(meshIndex => {
+          if (meshIndex >= 0 && meshIndex < allMeshes.length) {
+            output.push({ meshData: allMeshes[meshIndex], index: meshIndex });
+          }
+        });
+      }
+      if (node.children && Array.isArray(node.children)) {
+        node.children.forEach(child => collectMeshesFromNode(child, allMeshes, output));
+      }
+    }
+
+    function loadGLTF(file) {
+      showLoading(true);
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const loader = new GLTFLoader();
+          const blob = new Blob([e.target.result]);
+          const url = URL.createObjectURL(blob);
+
+          loader.load(url, (gltf) => {
+            const object = gltf.scene;
+
+            const box = new THREE.Box3().setFromObject(object);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            const scale = 4 / maxDim;
+
+            object.scale.setScalar(scale);
+            center.multiplyScalar(scale);
+            object.position.sub(center);
+
+            // Apply current material settings
+            object.traverse((child) => {
+              if (child.isMesh) {
+                if (child.material) {
+                  if (Array.isArray(child.material)) {
+                    child.material.forEach(m => {
+                      m.metalness = currentMaterial.metalness;
+                      m.roughness = currentMaterial.roughness;
+                      m.side = THREE.DoubleSide;
+                    });
+                  } else {
+                    child.material.metalness = currentMaterial.metalness;
+                    child.material.roughness = currentMaterial.roughness;
+                    child.material.side = THREE.DoubleSide;
+                  }
+                }
+                child.castShadow = true;
+                child.receiveShadow = true;
+              }
+            });
+
+            URL.revokeObjectURL(url);
+            currentFileData = e.target.result;
+            setCurrentMesh(object, file.name, size, 'GLTF');
+            showToast('GLTF 模型加载成功', 'success');
+            showLoading(false);
+          }, undefined, (err) => {
+            showToast('GLTF 模型加载失败: ' + err.message, 'error');
+            URL.revokeObjectURL(url);
+            showLoading(false);
+          });
+        } catch (err) {
+          showToast('GLTF 模型加载失败: ' + err.message, 'error');
+          showLoading(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function loadFBX(file) {
+      showLoading(true);
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const loader = new FBXLoader();
+          const object = loader.parse(e.target.result, '');
+
+          const box = new THREE.Box3().setFromObject(object);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z) || 1;
+          const scale = 4 / maxDim;
+
+          object.scale.setScalar(scale);
+          center.multiplyScalar(scale);
+          object.position.sub(center);
+
+          // Apply current material settings
+          object.traverse((child) => {
+            if (child.isMesh) {
+              if (child.material) {
+                if (Array.isArray(child.material)) {
+                  child.material.forEach(m => {
+                    m.color.setHex(currentMaterial.color);
+                    m.metalness = currentMaterial.metalness;
+                    m.roughness = currentMaterial.roughness;
+                    m.side = THREE.DoubleSide;
+                  });
+                } else {
+                  child.material.color.setHex(currentMaterial.color);
+                  child.material.metalness = currentMaterial.metalness;
+                  child.material.roughness = currentMaterial.roughness;
+                  child.material.side = THREE.DoubleSide;
+                }
+              }
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          currentFileData = e.target.result;
+          setCurrentMesh(object, file.name, size, 'FBX');
+          showToast('FBX 模型加载成功', 'success');
+        } catch (err) {
+          showToast('FBX 模型加载失败: ' + err.message, 'error');
+          console.error('FBX load error:', err);
+        } finally {
+          showLoading(false);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function setCurrentMesh(mesh, filename, originalSize, format) {
+      if (currentMesh) scene.remove(currentMesh);
+      currentMesh = mesh;
+      scene.add(mesh);
+      isModelLoaded = true;
+
+      document.getElementById('placeholder').classList.add('hidden');
+      document.getElementById('model-info-badge').classList.add('show');
+      document.getElementById('model-info-text').textContent =
+        `${filename}  (${originalSize.x.toFixed(1)}×${originalSize.y.toFixed(1)}×${originalSize.z.toFixed(1)} mm)`;
+      document.getElementById('coord-display').classList.add('show');
+
+      // Enable save button and show folder selector
+      document.getElementById('save-btn').disabled = false;
+      document.getElementById('save-folder-row').style.display = 'flex';
+
+      addFileToList(filename, format);
+      clearMeasure();
+
+      // Re-apply outline if enabled for the new model
+      if (edgeLinesVisible) {
+        updateEdgeLines();
+      }
+    }
+
+    function addFileToList(filename, format) {
+      const fileList = document.getElementById('file-list');
+      const item = document.createElement('div');
+      item.className = 'file-item';
+      item.innerHTML = `
+        <div class="file-icon">${format}</div>
+        <div class="file-info">
+          <div class="file-name">${filename}</div>
+          <div class="file-meta">${format} 格式 · 当前预览</div>
+        </div>
+        <button class="file-remove" title="移除">×</button>
+      `;
+      item.querySelector('.file-remove').addEventListener('click', () => {
+        item.remove();
+        if (currentMesh) {
+          scene.remove(currentMesh);
+          currentMesh = null;
+          isModelLoaded = false;
+          currentFileData = null;
+          currentFileName = '';
+          currentFileFormat = '';
+          document.getElementById('save-btn').disabled = true;
+          document.getElementById('save-folder-row').style.display = 'none';
+          document.getElementById('placeholder').classList.remove('hidden');
+          document.getElementById('model-info-badge').classList.remove('show');
+          document.getElementById('coord-display').classList.remove('show');
+          clearMeasure();
+          // Clear clipping
+          if (clipHelper) { scene.remove(clipHelper); clipHelper = null; }
+          if (clipHelperBack) { scene.remove(clipHelperBack); clipHelperBack = null; }
+          clipEnabled = false;
+          document.getElementById('clip-toggle').classList.remove('active');
+          document.getElementById('clip-toggle').textContent = '显示截面';
+          renderer.localClippingEnabled = false;
+        }
+      });
+      fileList.innerHTML = '';
+      fileList.appendChild(item);
+    }
+
+    // ===== View Switching =====
+    function setView(view) {
+      const distance = 6;
+      let targetPos;
+
+      switch(view) {
+        case 'front': targetPos = new THREE.Vector3(0, 0, distance); break;
+        case 'back': targetPos = new THREE.Vector3(0, 0, -distance); break;
+        case 'left': targetPos = new THREE.Vector3(-distance, 0, 0); break;
+        case 'right': targetPos = new THREE.Vector3(distance, 0, 0); break;
+        case 'top': targetPos = new THREE.Vector3(0, distance, 0.001); break;
+        case 'bottom': targetPos = new THREE.Vector3(0, -distance, 0.001); break;
+        case 'iso': targetPos = new THREE.Vector3(5, 5, 5); break;
+      }
+
+      const startPos = camera.position.clone();
+      const startTarget = controls.target.clone();
+      const endTarget = new THREE.Vector3(0, 0, 0);
+      const duration = 500;
+      const startTime = performance.now();
+
+      function animateView(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        camera.position.lerpVectors(startPos, targetPos, eased);
+        controls.target.lerpVectors(startTarget, endTarget, eased);
+        controls.update();
+
+        if (progress < 1) requestAnimationFrame(animateView);
+      }
+      requestAnimationFrame(animateView);
+
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector('[data-view="' + view + '"]').classList.add('active');
+    }
+
+    // ===== Measure Tool =====
+    function toggleMeasureMode() {
+      measureMode = !measureMode;
+      document.getElementById('measure-btn').classList.toggle('active');
+
+      if (!measureMode) {
+        clearMeasure();
+      } else {
+        showToast(measureModeType === 'direct'
+          ? '测量模式已启用，点击模型选取两个点测量最短距离'
+          : '测量模式已启用，点击模型选取两个点测量XYZ轴距离', 'info');
+      }
+    }
+
+    function clearMeasure() {
+      measurePoints = [];
+      measureMarkers.forEach(m => scene.remove(m));
+      measureMarkers = [];
+      if (measureLine) { scene.remove(measureLine); measureLine = null; }
+      measureAxisLines.forEach(l => scene.remove(l));
+      measureAxisLines = [];
+      document.getElementById('measure-result').classList.remove('show');
+      document.getElementById('measure-points').innerHTML = '';
+      document.getElementById('measure-labels-container').innerHTML = '';
+    }
+
+    function onMeasureClick(event) {
+      if (!measureMode || !currentMesh) return;
+
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(currentMesh, true);
+
+      if (intersects.length > 0) {
+        const point = intersects[0].point;
+
+        const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xf0883e });
+        const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+        marker.position.copy(point);
+        scene.add(marker);
+        measureMarkers.push(marker);
+
+        measurePoints.push(point);
+
+        if (measurePoints.length === 2) {
+          if (measureModeType === 'direct') {
+            performDirectMeasurement();
+          } else {
+            performAxisMeasurement();
+          }
+        }
+      }
+    }
+
+    function performDirectMeasurement() {
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(measurePoints);
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xf0883e, linewidth: 2 });
+      measureLine = new THREE.Line(lineGeometry, lineMaterial);
+      scene.add(measureLine);
+
+      const distance = measurePoints[0].distanceTo(measurePoints[1]);
+      document.getElementById('distance-value').textContent = distance.toFixed(2);
+      document.getElementById('measure-axis-results').style.display = 'none';
+
+      showPointInfo();
+      document.getElementById('measure-result').classList.add('show');
+      showToast(`最短距离: ${distance.toFixed(2)} mm`, 'success');
+
+      setTimeout(() => clearMeasure(), 5000);
+    }
+
+    function performAxisMeasurement() {
+      const p1 = measurePoints[0];
+      const p2 = measurePoints[1];
+      const dx = Math.abs(p2.x - p1.x);
+      const dy = Math.abs(p2.y - p1.y);
+      const dz = Math.abs(p2.z - p1.z);
+      const directDist = p1.distanceTo(p2);
+
+      const axisColors = [0xff4444, 0x44ff44, 0x4444ff];
+      const axisPoints = [
+        [new THREE.Vector3(p1.x, p1.y, p1.z), new THREE.Vector3(p2.x, p1.y, p1.z)],
+        [new THREE.Vector3(p2.x, p1.y, p1.z), new THREE.Vector3(p2.x, p2.y, p1.z)],
+        [new THREE.Vector3(p2.x, p2.y, p1.z), new THREE.Vector3(p2.x, p2.y, p2.z)]
+      ];
+
+      axisPoints.forEach((pts, i) => {
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineDashedMaterial({
+          color: axisColors[i],
+          linewidth: 1,
+          dashSize: 0.1,
+          gapSize: 0.05
+        });
+        const line = new THREE.Line(geo, mat);
+        line.computeLineDistances();
+        scene.add(line);
+        measureAxisLines.push(line);
+      });
+
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(measurePoints);
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xf0883e, linewidth: 2 });
+      measureLine = new THREE.Line(lineGeometry, lineMaterial);
+      scene.add(measureLine);
+
+      document.getElementById('distance-value').textContent = directDist.toFixed(2);
+      document.getElementById('axis-dx').textContent = dx.toFixed(2) + ' mm';
+      document.getElementById('axis-dy').textContent = dy.toFixed(2) + ' mm';
+      document.getElementById('axis-dz').textContent = dz.toFixed(2) + ' mm';
+      document.getElementById('measure-axis-results').style.display = 'flex';
+
+      showPointInfo();
+      document.getElementById('measure-result').classList.add('show');
+      showToast(`XYZ轴距离 - X:${dx.toFixed(2)} Y:${dy.toFixed(2)} Z:${dz.toFixed(2)} mm`, 'success');
+
+      setTimeout(() => clearMeasure(), 5000);
+    }
+
+    function showPointInfo() {
+      document.getElementById('measure-points').innerHTML = `
+        <div class="measure-point">
+          <span class="measure-point-label">P1:</span>
+          (${measurePoints[0].x.toFixed(2)}, ${measurePoints[0].y.toFixed(2)}, ${measurePoints[0].z.toFixed(2)})
+        </div>
+        <div class="measure-point">
+          <span class="measure-point-label">P2:</span>
+          (${measurePoints[1].x.toFixed(2)}, ${measurePoints[1].y.toFixed(2)}, ${measurePoints[1].z.toFixed(2)})
+        </div>
+      `;
+    }
+
+    // ===== Screen-space Measure Labels =====
+    function updateMeasureLabels() {
+      const container = document.getElementById('measure-labels-container');
+      if (!measureMode || measurePoints.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      container.innerHTML = '';
+
+      measurePoints.forEach((point, i) => {
+        const screenPos = point.clone().project(camera);
+        const x = (screenPos.x * 0.5 + 0.5) * rect.width;
+        const y = (-screenPos.y * 0.5 + 0.5) * rect.height;
+
+        if (screenPos.z < 1) {
+          const label = document.createElement('div');
+          label.className = 'measure-label-container';
+          label.style.left = x + 'px';
+          label.style.top = y + 'px';
+          label.innerHTML = `<div class="measure-label">P${i + 1}</div>`;
+          container.appendChild(label);
+        }
+      });
+
+      if (measurePoints.length === 2 && measureLine) {
+        const mid = new THREE.Vector3().addVectors(measurePoints[0], measurePoints[1]).multiplyScalar(0.5);
+        const screenPos = mid.clone().project(camera);
+        const x = (screenPos.x * 0.5 + 0.5) * rect.width;
+        const y = (-screenPos.y * 0.5 + 0.5) * rect.height;
+
+        if (screenPos.z < 1) {
+          const distance = measurePoints[0].distanceTo(measurePoints[1]);
+          const label = document.createElement('div');
+          label.className = 'measure-label-container';
+          label.style.left = x + 'px';
+          label.style.top = y + 'px';
+          label.innerHTML = `<div class="measure-label">${distance.toFixed(2)} mm</div>`;
+          container.appendChild(label);
+        }
+      }
+
+      if (measureModeType === 'axis' && measurePoints.length === 2) {
+        const p1 = measurePoints[0];
+        const p2 = measurePoints[1];
+        const axisLabels = [
+          { pos: new THREE.Vector3((p1.x + p2.x) / 2, p1.y, p1.z), val: Math.abs(p2.x - p1.x).toFixed(2) + ' mm', cls: 'measure-label-axis' },
+          { pos: new THREE.Vector3(p2.x, (p1.y + p2.y) / 2, p1.z), val: Math.abs(p2.y - p1.y).toFixed(2) + ' mm', cls: 'measure-label-axis' },
+          { pos: new THREE.Vector3(p2.x, p2.y, (p1.z + p2.z) / 2), val: Math.abs(p2.z - p1.z).toFixed(2) + ' mm', cls: 'measure-label-axis' }
+        ];
+
+        axisLabels.forEach(al => {
+          const sp = al.pos.clone().project(camera);
+          const x = (sp.x * 0.5 + 0.5) * rect.width;
+          const y = (-sp.y * 0.5 + 0.5) * rect.height;
+          if (sp.z < 1) {
+            const label = document.createElement('div');
+            label.className = 'measure-label-container';
+            label.style.left = x + 'px';
+            label.style.top = y + 'px';
+            label.innerHTML = `<div class="measure-label ${al.cls}">${al.val}</div>`;
+            container.appendChild(label);
+          }
+        });
+      }
+    }
+
+    // ===== Coordinate Display =====
+    function updateCoordinates(event) {
+      if (!isModelLoaded) return;
+
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const target = new THREE.Vector3();
+      raycaster.ray.intersectPlane(plane, target);
+
+      if (target) {
+        document.getElementById('coord-x').textContent = target.x.toFixed(2);
+        document.getElementById('coord-y').textContent = target.y.toFixed(2);
+        document.getElementById('coord-z').textContent = target.z.toFixed(2);
+      }
+    }
+
+    // ===== Toast Notifications =====
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      const icons = { success: '✓', error: '✕', info: 'ℹ' };
+      toast.innerHTML = `<div class="toast-icon">${icons[type]}</div><span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('toast-out');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function showLoading(show) {
+      document.getElementById('loading-overlay').classList.toggle('show', show);
+    }
+
+    // ===== Event Listeners =====
+    function setupEventListeners() {
+      const uploadZone = document.getElementById('upload-zone');
+      const fileInput = document.getElementById('file-input');
+
+      uploadZone.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleFile(file);
+      });
+
+      uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+      });
+
+      uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+      });
+
+      uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+      });
+
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => setView(btn.dataset.view));
+      });
+
+      document.getElementById('measure-btn').addEventListener('click', toggleMeasureMode);
+
+      const canvas = document.getElementById('canvas-container');
+      canvas.addEventListener('click', onMeasureClick);
+      canvas.addEventListener('mousemove', updateCoordinates);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && measureMode) toggleMeasureMode();
+      });
+
+      document.getElementById('sidebar-toggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+      });
+
+      window.addEventListener('resize', () => {
+        const container = document.getElementById('canvas-container');
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+    }
+
+    async function initOCCT() {
+      try {
+        if (typeof window.occtimportjs !== 'undefined') {
+          occtImporter = await window.occtimportjs();
+          console.log('OCCT importer initialized');
+        } else {
+          console.warn('occtimportjs not available');
+        }
+      } catch (err) {
+        console.error('Failed to init OCCT:', err);
+        showToast('STEP/IGES 加载器初始化失败', 'error');
+      }
+    }
+
+    function handleFile(file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'stl') loadSTL(file);
+      else if (ext === 'obj') loadOBJ(file);
+      else if (ext === 'step' || ext === 'stp') loadSTEP(file);
+      else if (ext === 'iges' || ext === 'igs') loadIGES(file);
+      else if (ext === 'gltf' || ext === 'glb') loadGLTF(file);
+      else if (ext === 'fbx') loadFBX(file);
+      else showToast('不支持的文件格式，请上传 STL / OBJ / STEP / IGES / GLTF / GLB / FBX 文件', 'error');
+    }
+
+    init();
+  </script>
+</body>
+</html>
