@@ -1,0 +1,64 @@
+/* 三列网格布局 */
+.dm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: calc(100vh - 56px - 32px);
+  gap: 12px;
+  height: calc(100vh - 56px - 32px);
+}
+
+.dm-col {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.dm-col-left {
+  grid-column: 1;
+}
+
+.dm-col-mid {
+  grid-column: 2;
+}
+
+.dm-col-right {
+  grid-column: 3;
+}
+
+/* 平板：两列 */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .dm-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .dm-col-left { grid-column: 1; }
+  .dm-col-mid { grid-column: 2; }
+  .dm-col-right { grid-column: 1 / -1; }
+}
+
+/* 移动端：单列 */
+@media (max-width: 767px) {
+  .dm-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .dm-col-left,
+  .dm-col-mid,
+  .dm-col-right {
+    grid-column: 1;
+    min-height: 400px;
+  }
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #bfbfbf; }
