@@ -217,6 +217,27 @@
       font-family: 'SF Mono', 'Fira Code', monospace;
     }
 
+    .mtl-upload-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .mtl-upload-row label {
+      color: var(--text-secondary);
+    }
+
+    .mtl-file-name {
+      color: var(--accent-cyan);
+      font-size: 11px;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     /* ===== Save Button ===== */
     .save-btn {
       width: 100%;
@@ -1041,6 +1062,22 @@
       box-shadow: 0 0 0 1px var(--accent-cyan);
     }
 
+    .folder-model-thumbnail {
+      width: 60px;
+      height: 45px;
+      border-radius: 4px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+    }
+
+    .folder-model-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .folder-model-icon {
       width: 24px;
       height: 24px;
@@ -1368,7 +1405,7 @@
       position: absolute;
       top: 56px;
       left: 16px;
-      width: 280px;
+      width: 320px;
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: 12px;
@@ -1394,6 +1431,21 @@
       font-size: 14px;
       font-weight: 600;
       color: var(--text-primary);
+    }
+
+    .help-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 12px 0 8px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .help-section-title:first-child {
+      margin-top: 0;
     }
 
     .help-tooltip-close {
@@ -1469,6 +1521,35 @@
     .clip-axis-select {
       display: flex;
       gap: 6px;
+    }
+
+    .clip-mode-select {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .clip-mode-btn {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .clip-mode-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .clip-mode-btn.active {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      color: white;
     }
 
     .clip-axis-btn {
@@ -1692,6 +1773,215 @@
 
     .coord-display .coord-value {
       color: var(--accent-cyan);
+    }
+
+    /* ===== Annotation Module ===== */
+    .annotation-toolbar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .annotation-tool-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+
+    .annotation-tool-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .annotation-tool-btn.active {
+      background: var(--accent-cyan);
+      color: white;
+      border-color: var(--accent-cyan);
+    }
+
+    .annotation-input-row {
+      margin-bottom: 10px;
+    }
+
+    .annotation-text-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+
+    .annotation-text-input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+
+    .annotation-actions {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .annotation-action-btn {
+      flex: 1;
+      min-width: 70px;
+      padding: 8px 10px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .annotation-action-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .annotation-list {
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .annotation-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .annotation-list-item-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .annotation-list-item-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .annotation-list-item-remove {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .annotation-list-item-remove:hover {
+      color: var(--accent-red);
+    }
+
+    /* ===== LOD Detail Display ===== */
+    .lod-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .lod-slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .lod-slider-row label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .lod-info {
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .lod-info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .lod-info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .lod-info-label {
+      color: var(--text-muted);
+    }
+
+    .lod-info-value {
+      color: var(--accent-cyan);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .lod-presets {
+      display: flex;
+      gap: 4px;
+    }
+
+    .lod-preset-btn {
+      flex: 1;
+      padding: 6px 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lod-preset-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .lod-preset-btn.active {
+      background: #a855f7;
+      color: white;
+      border-color: #a855f7;
+    }
+
+    /* ===== Compass/Axes Indicator ===== */
+    #compass-container {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 100px;
+      height: 100px;
+      z-index: 50;
+      transition: right 0.3s ease;
+    }
+
+    #compass-canvas {
+      display: block;
+      border-radius: 8px;
     }
 
     /* ===== Model Info Badge ===== */
@@ -1960,8 +2250,8 @@
             </svg>
           </div>
           <div>
-            <h1>CAD 三维预览</h1>
-            <div class="subtitle">工程数据可视化平台 v2.0</div>
+            <h1>轻量化三维预览</h1>
+            <div class="subtitle">数据可视化平台 V2.0</div>
           </div>
         </div>
       </div>
@@ -1982,9 +2272,15 @@
               </svg>
             </div>
             <p>拖拽文件到此处或点击上传</p>
-            <p class="formats">.STL  .OBJ  .STEP  .IGES  .GLTF  .GLB  .FBX</p>
+            <p class="formats">.STL  .OBJ  .STEP  .IGES  .GLTF  .GLB  .FBX  .DXF  .XYZ  .IFC</p>
           </div>
-          <input type="file" id="file-input" accept=".stl,.obj,.step,.stp,.iges,.igs,.gltf,.glb,.fbx" style="display:none">
+          <input type="file" id="file-input" accept=".stl,.obj,.step,.stp,.iges,.igs,.gltf,.glb,.fbx,.dxf,.xyz,.ifc" style="display:none">
+          <div class="mtl-upload-row" id="mtl-upload-row" style="display:none;">
+            <label>材质文件 (.mtl):</label>
+            <input type="file" id="mtl-file-input" accept=".mtl" style="display:none">
+            <button class="clip-action-btn" id="mtl-upload-btn">上传 MTL</button>
+            <span class="mtl-file-name" id="mtl-file-name"></span>
+          </div>
           <div class="file-list" id="file-list"></div>
           <div class="folder-select-row" id="save-folder-row" style="display:none">
             <label>保存到:</label>
@@ -2096,15 +2392,72 @@
           </div>
         </div>
 
+        <!-- Annotation Panel -->
+        <div class="panel" id="annotation-panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: #f59e0b"></div>
+            <h2>标注模块</h2>
+            <button class="panel-toggle" id="annotation-toggle-btn">-</button>
+          </div>
+          <div class="annotation-controls" id="annotation-controls">
+            <div class="annotation-toolbar">
+              <button class="annotation-tool-btn active" id="ann-select" title="选择">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+              </button>
+              <button class="annotation-tool-btn" id="ann-point" title="点标注">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4"/></svg>
+              </button>
+              <button class="annotation-tool-btn" id="ann-line" title="引用线标注">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><circle cx="5" cy="12" r="2"/><text x="14" y="15" font-size="8" fill="currentColor">A</text></svg>
+              </button>
+              <button class="annotation-tool-btn" id="ann-text" title="文本框标注">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+              </button>
+            </div>
+            <div class="annotation-input-row">
+              <input type="text" id="ann-text-input" class="annotation-text-input" placeholder="输入标注文字...">
+            </div>
+            <div class="color-picker-row">
+              <label>颜色</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="ann-color" value="#f59e0b">
+              </div>
+            </div>
+            <div class="annotation-actions">
+              <button class="annotation-action-btn" id="ann-toggle-visibility">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span id="ann-visibility-text">隐藏标注</span>
+              </button>
+              <button class="annotation-action-btn" id="ann-save">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                保存
+              </button>
+              <button class="annotation-action-btn" id="ann-load">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                加载
+              </button>
+              <button class="annotation-action-btn" id="ann-clear">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                清除
+              </button>
+            </div>
+            <div id="annotation-list" class="annotation-list"></div>
+          </div>
+        </div>
+
         <!-- Clipping Plane Panel -->
         <div class="panel">
           <div class="panel-header">
             <div class="panel-indicator" style="background: var(--accent-red)"></div>
-            <h2>截面分析</h2>
+            <h2>进阶截面分析</h2>
           </div>
           <div class="clip-controls">
+            <div class="clip-mode-select">
+              <button class="clip-mode-btn active" data-mode="axis">轴向截面</button>
+              <button class="clip-mode-btn" data-mode="thickness">指定厚度</button>
+            </div>
             <div class="clip-axis-select">
-              <button class="clip-axis-btn" data-axis="x">X 轴</button>
+              <button class="clip-axis-btn active" data-axis="x">X 轴</button>
               <button class="clip-axis-btn" data-axis="y">Y 轴</button>
               <button class="clip-axis-btn" data-axis="z">Z 轴</button>
             </div>
@@ -2115,17 +2468,45 @@
                 <span class="slider-value" id="clip-val">0</span>
               </div>
             </div>
-            <div class="clip-slider-row">
+            <div class="clip-slider-row" id="clip-thickness-row">
               <label>厚度</label>
               <div class="slider-wrapper">
-                <input type="range" id="clip-thickness" min="1" max="50" value="10">
+                <input type="range" id="clip-thickness" min="1" max="100" value="10">
                 <span class="slider-value" id="clip-thickness-val">0.10</span>
+              </div>
+            </div>
+            <div class="clip-slider-row">
+              <label>偏移</label>
+              <div class="slider-wrapper">
+                <input type="range" id="clip-offset" min="-100" max="100" value="0">
+                <span class="slider-value" id="clip-offset-val">0.00</span>
               </div>
             </div>
             <div class="clip-actions">
               <button class="clip-action-btn" id="clip-toggle">显示截面</button>
               <button class="clip-action-btn" id="clip-flip">反转方向</button>
             </div>
+            <div class="clip-actions">
+              <button class="clip-action-btn" id="clip-add">+ 添加截面</button>
+              <button class="clip-action-btn" id="clip-clear">清除所有</button>
+            </div>
+            <div class="color-picker-row">
+              <label>截面颜色</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="clip-color" value="#58a6ff">
+              </div>
+            </div>
+            <div class="clip-slider-row">
+              <label>透明度</label>
+              <div class="slider-wrapper">
+                <input type="range" id="clip-opacity" min="0" max="100" value="30">
+                <span class="slider-value" id="clip-opacity-val">0.30</span>
+              </div>
+            </div>
+            <div class="clip-actions">
+              <button class="clip-action-btn" id="clip-export">导出轮廓数据</button>
+            </div>
+            <div id="clip-list" class="clip-list"></div>
           </div>
         </div>
 
@@ -2155,6 +2536,58 @@
               轮廓线
             </span>
             <div class="toggle-switch" id="toggle-edges" data-on="false"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              坐标轴拖拽
+            </span>
+            <div class="toggle-switch" id="toggle-axis-drag" data-on="false"></div>
+          </div>
+        </div>
+
+        <!-- LOD Detail Display Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-indicator" style="background: #a855f7"></div>
+            <h2>LOD 细节显示</h2>
+          </div>
+          <div class="lod-controls">
+            <div class="toggle-row">
+              <span class="toggle-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                启用 LOD
+              </span>
+              <div class="toggle-switch" id="toggle-lod" data-on="false"></div>
+            </div>
+            <div class="lod-slider-row" id="lod-detail-controls" style="display: none;">
+              <label>细节级别</label>
+              <div class="slider-wrapper">
+                <input type="range" id="lod-slider" min="1" max="5" value="3">
+                <span class="slider-value" id="lod-val">3</span>
+              </div>
+            </div>
+            <div class="lod-info" id="lod-info" style="display: none;">
+              <div class="lod-info-row">
+                <span class="lod-info-label">当前面数:</span>
+                <span class="lod-info-value" id="lod-face-count">-</span>
+              </div>
+              <div class="lod-info-row">
+                <span class="lod-info-label">顶点数量:</span>
+                <span class="lod-info-value" id="lod-vertex-count">-</span>
+              </div>
+              <div class="lod-info-row">
+                <span class="lod-info-label">渲染占比:</span>
+                <span class="lod-info-value" id="lod-percentage">-</span>
+              </div>
+            </div>
+            <div class="lod-presets">
+              <button class="lod-preset-btn" data-lod="1">极高</button>
+              <button class="lod-preset-btn" data-lod="2">高</button>
+              <button class="lod-preset-btn active" data-lod="3">中</button>
+              <button class="lod-preset-btn" data-lod="4">低</button>
+              <button class="lod-preset-btn" data-lod="5">极低</button>
+            </div>
           </div>
         </div>
 
@@ -2213,23 +2646,29 @@
         <div class="panel">
           <div class="panel-header">
             <div class="panel-indicator" style="background: var(--accent-orange)"></div>
-            <h2>测量工具</h2>
+            <h2>高级测量工具</h2>
           </div>
           <div class="measure-mode-select">
-            <button class="measure-mode-btn active" data-mode="direct">最短距离</button>
-            <button class="measure-mode-btn" data-mode="axis">XYZ轴距离</button>
+            <button class="measure-mode-btn active" data-mode="direct">距离</button>
+            <button class="measure-mode-btn" data-mode="axis">轴向</button>
+            <button class="measure-mode-btn" data-mode="angle">角度</button>
+            <button class="measure-mode-btn" data-mode="radius">半径</button>
+          </div>
+          <div class="measure-mode-select">
+            <button class="measure-mode-btn" data-mode="area">面积</button>
+            <button class="measure-mode-btn" data-mode="volume">体积</button>
           </div>
           <button class="measure-btn" id="measure-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 6h18M3 12h18M3 18h18"/>
             </svg>
-            <span>启用距离测量</span>
+            <span id="measure-btn-text">启用距离测量</span>
           </button>
           <div class="measure-result" id="measure-result">
-            <div class="measure-result-label">测量距离</div>
+            <div class="measure-result-label" id="measure-result-label">测量距离</div>
             <div>
               <span class="measure-result-value" id="distance-value">0.00</span>
-              <span class="measure-result-unit">mm</span>
+              <span class="measure-result-unit" id="measure-unit">mm</span>
             </div>
             <div class="measure-axis-results" id="measure-axis-results" style="display:none">
               <div class="measure-axis-row">
@@ -2256,6 +2695,11 @@
     <main class="viewport">
       <div id="canvas-container"></div>
 
+      <!-- Compass/Axes Indicator (Top Right) -->
+      <div id="compass-container">
+        <canvas id="compass-canvas" width="100" height="100"></canvas>
+      </div>
+
       <!-- Help Icon -->
       <button class="help-icon-btn" id="help-icon-btn" title="操作指南">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2272,6 +2716,7 @@
           <button class="help-tooltip-close" id="help-tooltip-close">×</button>
         </div>
         <div class="help-list">
+          <div class="help-section-title">鼠标操作</div>
           <div class="help-item">
             <span class="help-key">LMB</span>
             <span>旋转视图（按住拖拽）</span>
@@ -2291,6 +2736,33 @@
           <div class="help-item">
             <span class="help-key">Esc</span>
             <span>退出测量模式</span>
+          </div>
+        </div>
+        <div class="help-list">
+          <div class="help-section-title">快捷键</div>
+          <div class="help-item">
+            <span class="help-key">Ctrl + G</span>
+            <span>切换网格</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">Ctrl + A</span>
+            <span>切换坐标轴</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">Ctrl + L</span>
+            <span>切换模型库</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">Ctrl + S</span>
+            <span>保存模型</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">Ctrl + E</span>
+            <span>切换边线显示</span>
+          </div>
+          <div class="help-item">
+            <span class="help-key">R</span>
+            <span>重置视图</span>
           </div>
         </div>
       </div>
@@ -2386,6 +2858,7 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { STLLoader } from 'three/addons/loaders/STLLoader.js';
     import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
@@ -2395,6 +2868,8 @@
     let currentFileData = null;
     let currentFileName = '';
     let currentFileFormat = '';
+    let currentOBJData = null;
+    let currentMTLData = null;
     let measureMode = false;
     let measureModeType = 'direct';
     let measurePoints = [];
@@ -2417,15 +2892,32 @@
     let clipHelper = null;
     let clipHelperBack = null;
     let clipEnabled = false;
+    let clipMode = 'axis';
     let clipAxis = 'x';
     let clipFlip = false;
     let clipPosition = 0;
     let clipThickness = 0.1;
+    let clipOffset = 0;
+    let clipColor = 0x58a6ff;
+    let clipOpacity = 0.3;
+    let clipList = [];
+    let clipIdCounter = 0;
     let customMaterials = [];
     let currentTexture = null;
     let occtImporter = null;
     let edgeLinesVisible = false;
     let edgeLinesGroup = null;
+    let annotationMode = 'select';
+    let annotationColor = 0xf59e0b;
+    let annotations = [];
+    let annotationObjects = [];
+    let isAnnotating = false;
+    let annotationStartPoint = null;
+    let annotationsVisible = true;
+    let lodEnabled = false;
+    let lodLevel = 3;
+    let originalGeometry = null;
+    let originalFaceCount = 0;
 
     const MATERIAL_LIBRARY = [
       { name: '默认蓝', color: 0x58a6ff, metalness: 0.3, roughness: 0.4 },
@@ -2443,10 +2935,51 @@
     ];
 
     const DB_NAME = 'CADViewerDB';
-    const DB_VERSION = 3;
+    const DB_VERSION = 4;
     const STORE_NAME = 'models';
     const FOLDER_STORE_NAME = 'folders';
     const VIEW_STORE_NAME = 'customViews';
+    const ANNOTATION_STORE_NAME = 'annotations';
+
+    // ===== Thumbnail Generator =====
+    function generateThumbnail(mesh, width = 200, height = 150) {
+      return new Promise((resolve) => {
+        const tempRenderer = new THREE.WebGLRenderer({ antialias: true });
+        tempRenderer.setSize(width, height);
+        tempRenderer.setPixelRatio(1);
+        
+        const tempScene = new THREE.Scene();
+        tempScene.background = new THREE.Color(0x1a1a2e);
+        
+        const tempCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        const bbox = new THREE.Box3().setFromObject(mesh);
+        const center = bbox.getCenter(new THREE.Vector3());
+        const size = bbox.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z) * 1.5;
+        
+        tempCamera.position.set(center.x + maxDim, center.y + maxDim, center.z + maxDim);
+        tempCamera.lookAt(center);
+        
+        const light1 = new THREE.DirectionalLight(0xffffff, 1);
+        light1.position.set(1, 1, 1);
+        tempScene.add(light1);
+        
+        const light2 = new THREE.AmbientLight(0x404040, 0.5);
+        tempScene.add(light2);
+        
+        const meshClone = mesh.clone();
+        meshClone.position.x = -center.x;
+        meshClone.position.y = -center.y;
+        meshClone.position.z = -center.z;
+        tempScene.add(meshClone);
+        
+        tempRenderer.render(tempScene, tempCamera);
+        const dataUrl = tempRenderer.domElement.toDataURL('image/png');
+        tempRenderer.dispose();
+        
+        resolve(dataUrl);
+      });
+    }
 
     // ===== Init =====
     function init() {
@@ -2519,10 +3052,13 @@
       setupCustomViewControls();
       setupHelpControls();
       setupClippingControls();
+      setupAnnotationControls();
+      setupLODControls();
       setupCustomMaterialUpload();
       setupEdgeLinesControls();
       renderMaterialLibrary();
       initOCCT().catch(err => console.error('OCCT init failed:', err));
+      initCompass();
       initDB().then(() => {
         loadSavedModels();
         loadCustomViews();
@@ -2535,6 +3071,97 @@
       controls.update();
       renderer.render(scene, camera);
       updateMeasureLabels();
+      updateCompass();
+    }
+
+    // ===== Compass Indicator =====
+    let compassCtx = null;
+
+    function initCompass() {
+      const canvas = document.getElementById('compass-canvas');
+      if (canvas) {
+        compassCtx = canvas.getContext('2d');
+      }
+    }
+
+    function updateCompass() {
+      if (!compassCtx || !camera) return;
+
+      const canvas = document.getElementById('compass-canvas');
+      const ctx = compassCtx;
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const cameraDirection = new THREE.Vector3();
+      camera.getWorldDirection(cameraDirection);
+
+      const yaw = Math.atan2(cameraDirection.x, cameraDirection.z);
+      const pitch = Math.asin(cameraDirection.y);
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      ctx.strokeStyle = 'rgba(88, 166, 255, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, 35, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.rotate(-yaw);
+
+      const axisLen = 30;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+
+      ctx.strokeStyle = '#ff6b6b';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -axisLen);
+      ctx.stroke();
+
+      ctx.fillStyle = '#ff6b6b';
+      ctx.font = 'bold 10px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Y', 0, -axisLen - 6);
+
+      ctx.strokeStyle = '#4ade80';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(axisLen, 0);
+      ctx.stroke();
+
+      ctx.fillStyle = '#4ade80';
+      ctx.fillText('X', axisLen + 6, 3);
+
+      ctx.strokeStyle = '#60a5fa';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, axisLen);
+      ctx.stroke();
+
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillText('-Y', 0, axisLen + 12);
+
+      ctx.strokeStyle = '#f472b6';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-axisLen, 0);
+      ctx.stroke();
+
+      ctx.fillStyle = '#f472b6';
+      ctx.fillText('-X', -axisLen - 6, 3);
+
+      ctx.restore();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.font = '9px Arial';
+      ctx.textAlign = 'center';
+      const northAngle = ((Math.atan2(cameraDirection.x, cameraDirection.z) * 180 / Math.PI) + 180) % 360;
+      ctx.fillText('N ' + Math.round(northAngle) + '°', cx, h - 6);
     }
 
     // ===== IndexedDB =====
@@ -2554,6 +3181,9 @@
           if (!db.objectStoreNames.contains(VIEW_STORE_NAME)) {
             db.createObjectStore(VIEW_STORE_NAME, { keyPath: 'id', autoIncrement: true });
           }
+          if (!db.objectStoreNames.contains(ANNOTATION_STORE_NAME)) {
+            db.createObjectStore(ANNOTATION_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+          }
         };
       });
     }
@@ -2567,13 +3197,20 @@
       const folderSelect = document.getElementById('save-folder-select');
       const folderId = folderSelect.value ? parseInt(folderSelect.value) : null;
 
+      let thumbnail = null;
+      if (currentMesh) {
+        showToast('正在生成预览图...', 'info');
+        thumbnail = await generateThumbnail(currentMesh);
+      }
+
       const model = {
         name: currentFileName,
         format: currentFileFormat,
         size: currentFileData.byteLength || currentFileData.length,
         data: currentFileData,
         folderId: folderId,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        thumbnail: thumbnail
       };
 
       const tx = modelDB.transaction([STORE_NAME], 'readwrite');
@@ -2714,7 +3351,12 @@
       if (model.id === currentModelId) item.classList.add('active');
 
       const date = new Date(model.timestamp).toLocaleDateString('zh-CN');
+      const thumbnailHtml = model.thumbnail 
+        ? `<div class="folder-model-thumbnail"><img src="${model.thumbnail}" alt="preview"></div>` 
+        : '';
+
       item.innerHTML = `
+        ${thumbnailHtml}
         <div class="folder-model-icon">${model.format}</div>
         <div class="folder-model-info">
           <div class="folder-model-name">${model.name}</div>
@@ -2927,8 +3569,12 @@
       const toggle = document.getElementById('library-toggle');
       const close = document.getElementById('library-close');
 
-      toggle.addEventListener('click', () => library.classList.toggle('open'));
-      close.addEventListener('click', () => library.classList.remove('open'));
+      toggle.addEventListener('click', toggleLibrary);
+      close.addEventListener('click', () => {
+        if (library.classList.contains('open')) {
+          toggleLibrary();
+        }
+      });
 
       document.getElementById('save-btn').addEventListener('click', saveModelToDB);
 
@@ -3047,6 +3693,7 @@
       const toggleGrid = document.getElementById('toggle-grid');
       const toggleAxes = document.getElementById('toggle-axes');
       const toggleEdges = document.getElementById('toggle-edges');
+      const toggleAxisDrag = document.getElementById('toggle-axis-drag');
 
       toggleGrid.addEventListener('click', () => {
         const isOn = toggleGrid.dataset.on === 'true';
@@ -3069,6 +3716,93 @@
         edgeLinesVisible = !isOn;
         updateEdgeLines();
       });
+
+      let axisDragEnabled = false;
+      let isDragging = false;
+      let dragStartX = 0, dragStartY = 0;
+      let modelStartPosition = null;
+      let modelStartRotation = null;
+
+      toggleAxisDrag.addEventListener('click', () => {
+        const isOn = toggleAxisDrag.dataset.on === 'true';
+        toggleAxisDrag.dataset.on = (!isOn).toString();
+        toggleAxisDrag.classList.toggle('active');
+        axisDragEnabled = !isOn;
+        document.body.style.cursor = axisDragEnabled ? 'grab' : 'default';
+        showToast(axisDragEnabled ? '坐标轴拖拽已启用 - 在模型上拖拽可平移/旋转' : '坐标轴拖拽已关闭', 'info');
+      });
+
+      const canvas = renderer.domElement;
+
+      canvas.addEventListener('mousedown', (e) => {
+        if (!axisDragEnabled || !currentMesh) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+        const intersects = raycaster.intersectObject(currentMesh, true);
+
+        if (intersects.length > 0) {
+          isDragging = true;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          modelStartPosition = currentMesh.position.clone();
+          modelStartRotation = currentMesh.rotation.clone();
+          canvas.style.cursor = 'grabbing';
+          controls.enabled = false;
+        }
+      });
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (!axisDragEnabled) {
+          canvas.style.cursor = 'default';
+          return;
+        }
+
+        if (isDragging && currentMesh) {
+          const deltaX = e.clientX - dragStartX;
+          const deltaY = e.clientY - dragStartY;
+
+          const rotationSpeed = 0.005;
+          const translationSpeed = 0.005;
+
+          if (e.shiftKey) {
+            currentMesh.rotation.y = modelStartRotation.y + deltaX * rotationSpeed;
+            currentMesh.rotation.x = modelStartRotation.x + deltaY * rotationSpeed;
+          } else {
+            currentMesh.position.x = modelStartPosition.x + deltaX * translationSpeed;
+            currentMesh.position.y = modelStartPosition.y - deltaY * translationSpeed;
+          }
+        } else if (axisDragEnabled) {
+          canvas.style.cursor = 'grab';
+        }
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          canvas.style.cursor = axisDragEnabled ? 'grab' : 'default';
+          controls.enabled = true;
+        }
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        if (isDragging) {
+          isDragging = false;
+          canvas.style.cursor = axisDragEnabled ? 'grab' : 'default';
+          controls.enabled = true;
+        }
+      });
+
+      canvas.addEventListener('wheel', (e) => {
+        if (axisDragEnabled && currentMesh) {
+          e.preventDefault();
+          const zoomSpeed = 0.001;
+          currentMesh.position.z = modelStartPosition ? modelStartPosition.z + e.deltaY * zoomSpeed : currentMesh.position.z + e.deltaY * zoomSpeed;
+        }
+      }, { passive: false });
     }
 
     // ===== Measure Mode Controls =====
@@ -3079,12 +3813,40 @@
           modeBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           measureModeType = btn.dataset.mode;
+          updateMeasureModeUI();
           if (measureMode) {
             clearMeasure();
-            showToast(measureModeType === 'direct' ? '已切换为最短距离模式' : '已切换为XYZ轴距离模式', 'info');
           }
         });
       });
+    }
+
+    function updateMeasureModeUI() {
+      const btnText = document.getElementById('measure-btn-text');
+      const resultLabel = document.getElementById('measure-result-label');
+      const measureUnit = document.getElementById('measure-unit');
+      const axisResults = document.getElementById('measure-axis-results');
+      
+      const modeLabels = {
+        direct: { btn: '启用距离测量', label: '测量距离', unit: 'mm' },
+        axis: { btn: '启用轴向测量', label: 'XYZ 轴向距离', unit: 'mm' },
+        angle: { btn: '启用角度测量', label: '测量角度', unit: '°' },
+        radius: { btn: '启用半径测量', label: '测量半径', unit: 'mm' },
+        area: { btn: '启用面积测量', label: '近似面积', unit: 'mm²' },
+        volume: { btn: '启用体积测量', label: '近似体积', unit: 'mm³' }
+      };
+      
+      const mode = modeLabels[measureModeType] || modeLabels.direct;
+      btnText.textContent = mode.btn;
+      resultLabel.textContent = mode.label;
+      measureUnit.textContent = mode.unit;
+      
+      // Show/hide axis results
+      if (measureModeType === 'axis') {
+        axisResults.style.display = 'flex';
+      } else {
+        axisResults.style.display = 'none';
+      }
     }
 
     // ===== Material Controls =====
@@ -3374,13 +4136,39 @@
 
     // ===== Clipping Plane Controls =====
     function setupClippingControls() {
+      const modeBtns = document.querySelectorAll('.clip-mode-btn');
       const axisBtns = document.querySelectorAll('.clip-axis-btn');
       const slider = document.getElementById('clip-slider');
       const sliderVal = document.getElementById('clip-val');
       const thicknessSlider = document.getElementById('clip-thickness');
       const thicknessVal = document.getElementById('clip-thickness-val');
+      const thicknessRow = document.getElementById('clip-thickness-row');
+      const offsetSlider = document.getElementById('clip-offset');
+      const offsetVal = document.getElementById('clip-offset-val');
+      const opacitySlider = document.getElementById('clip-opacity');
+      const opacityVal = document.getElementById('clip-opacity-val');
       const toggleBtn = document.getElementById('clip-toggle');
       const flipBtn = document.getElementById('clip-flip');
+      const colorInput = document.getElementById('clip-color');
+      const addBtn = document.getElementById('clip-add');
+      const clearBtn = document.getElementById('clip-clear');
+      const exportBtn = document.getElementById('clip-export');
+
+      modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          modeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          clipMode = btn.dataset.mode;
+          
+          if (clipMode === 'axis') {
+            thicknessRow.style.display = 'none';
+            clipThickness = 0;
+          } else {
+            thicknessRow.style.display = 'block';
+          }
+          updateClipPlane();
+        });
+      });
 
       axisBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -3400,6 +4188,23 @@
       thicknessSlider.addEventListener('input', () => {
         clipThickness = parseInt(thicknessSlider.value) / 100;
         thicknessVal.textContent = clipThickness.toFixed(2);
+        updateClipPlane();
+      });
+
+      offsetSlider.addEventListener('input', () => {
+        clipOffset = parseInt(offsetSlider.value) / 100;
+        offsetVal.textContent = clipOffset.toFixed(2);
+        updateClipPlane();
+      });
+
+      opacitySlider.addEventListener('input', () => {
+        clipOpacity = parseInt(opacitySlider.value) / 100;
+        opacityVal.textContent = clipOpacity.toFixed(2);
+        updateClipPlane();
+      });
+
+      colorInput.addEventListener('input', () => {
+        clipColor = parseInt(colorInput.value.replace('#', '0x'));
         updateClipPlane();
       });
 
@@ -3423,6 +4228,648 @@
         flipBtn.classList.toggle('active', clipFlip);
         updateClipPlane();
       });
+
+      addBtn.addEventListener('click', () => {
+        const clipData = {
+          id: ++clipIdCounter,
+          axis: clipAxis,
+          position: clipPosition,
+          thickness: clipThickness,
+          offset: clipOffset,
+          flip: clipFlip,
+          color: clipColor,
+          opacity: clipOpacity
+        };
+        clipList.push(clipData);
+        renderClipList();
+        showToast(`截面 #${clipData.id} 已添加`, 'success');
+      });
+
+      clearBtn.addEventListener('click', () => {
+        clipList = [];
+        renderClipList();
+        showToast('所有截面已清除', 'info');
+      });
+
+      exportBtn.addEventListener('click', exportClipContour);
+    }
+
+    function setupAnnotationControls() {
+      const toolBtns = document.querySelectorAll('.annotation-tool-btn');
+      const textInput = document.getElementById('ann-text-input');
+      const colorInput = document.getElementById('ann-color');
+      const saveBtn = document.getElementById('ann-save');
+      const loadBtn = document.getElementById('ann-load');
+      const clearBtn = document.getElementById('ann-clear');
+      const visibilityBtn = document.getElementById('ann-toggle-visibility');
+      const visibilityText = document.getElementById('ann-visibility-text');
+
+      toolBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          toolBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          annotationMode = btn.id.replace('ann-', '');
+        });
+      });
+
+      colorInput.addEventListener('input', () => {
+        annotationColor = parseInt(colorInput.value.replace('#', '0x'));
+      });
+
+      saveBtn.addEventListener('click', saveAnnotations);
+      loadBtn.addEventListener('click', loadAnnotations);
+      clearBtn.addEventListener('click', clearAnnotations);
+
+      visibilityBtn.addEventListener('click', () => {
+        annotationsVisible = !annotationsVisible;
+        visibilityText.textContent = annotationsVisible ? '隐藏标注' : '显示标注';
+        annotationObjects.forEach(obj => {
+          obj.visible = annotationsVisible;
+        });
+        showToast(annotationsVisible ? '标注已显示' : '标注已隐藏', 'info');
+      });
+
+      const canvas = renderer.domElement;
+      canvas.addEventListener('click', onAnnotationClick);
+    }
+
+    function onAnnotationClick(event) {
+      if (annotationMode === 'select') return;
+
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+      
+      let point = null;
+      let intersects = [];
+      
+      if (currentMesh) {
+        intersects = raycaster.intersectObject(currentMesh, true);
+        if (intersects.length > 0) {
+          point = intersects[0].point;
+        }
+      }
+
+      const text = document.getElementById('ann-text-input').value || '标注';
+      let annotationObj = null;
+
+      switch(annotationMode) {
+        case 'point':
+          if (!point) {
+            showToast('请点击模型上的位置', 'warning');
+            return;
+          }
+          annotationObj = createPointAnnotation(point, text);
+          break;
+        case 'line':
+          if (!point) {
+            showToast('请点击模型上的位置', 'warning');
+            return;
+          }
+          annotationObj = createReferenceLineAnnotation(point, text);
+          break;
+        case 'text':
+          const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+          const intersectPoint = new THREE.Vector3();
+          raycaster.ray.intersectPlane(planeZ, intersectPoint);
+          const worldPoint = intersectPoint || new THREE.Vector3(0, 0, 0);
+          annotationObj = createTextAnnotation(worldPoint, text);
+          break;
+        default:
+          return;
+      }
+
+      if (annotationObj) {
+        annotationObjects.push(annotationObj);
+        annotations.push({
+          type: annotationMode,
+          points: annotationObj.userData.points || [],
+          text: text,
+          color: annotationColor
+        });
+        renderAnnotationList();
+        showToast('标注已添加', 'success');
+      }
+    }
+
+    function createPointAnnotation(point, text) {
+      const group = new THREE.Group();
+      
+      const sphereGeo = new THREE.SphereGeometry(0.08, 16, 16);
+      const sphereMat = new THREE.MeshBasicMaterial({ color: annotationColor });
+      const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+      sphere.position.copy(point);
+      group.add(sphere);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 32;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#' + annotationColor.toString(16).padStart(6, '0');
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(text, 5, 22);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: texture });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.position.copy(point);
+      sprite.position.y += 0.3;
+      sprite.scale.set(1, 0.25, 1);
+      group.add(sprite);
+
+      group.userData = { type: 'annotation', points: [point.clone()] };
+      scene.add(group);
+      return group;
+    }
+
+    function createReferenceLineAnnotation(point, text) {
+      const group = new THREE.Group();
+      
+      const markerSphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.05, 16, 16),
+        new THREE.MeshBasicMaterial({ color: annotationColor })
+      );
+      markerSphere.position.copy(point);
+      group.add(markerSphere);
+
+      const lineEnd = point.clone().add(new THREE.Vector3(0.5, 0.5, 0.5));
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([point, lineEnd]);
+      const lineMat = new THREE.LineBasicMaterial({ color: annotationColor });
+      const line = new THREE.Line(lineGeo, lineMat);
+      group.add(line);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#' + annotationColor.toString(16).padStart(6, '0');
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText(text, 5, 35);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.strokeText(text, 5, 35);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.position.copy(lineEnd);
+      sprite.position.x += 0.3;
+      sprite.scale.set(2, 0.5, 1);
+      group.add(sprite);
+
+      group.userData = { type: 'annotation', points: [point.clone(), lineEnd.clone()] };
+      scene.add(group);
+      return group;
+    }
+
+    function createLineAnnotation(p1, p2) {
+      const group = new THREE.Group();
+      
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+      const lineMat = new THREE.LineBasicMaterial({ color: annotationColor, linewidth: 2 });
+      const line = new THREE.Line(lineGeo, lineMat);
+      group.add(line);
+
+      const p1Sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.05, 8, 8),
+        new THREE.MeshBasicMaterial({ color: annotationColor })
+      );
+      p1Sphere.position.copy(p1);
+      group.add(p1Sphere);
+
+      const p2Sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.05, 8, 8),
+        new THREE.MeshBasicMaterial({ color: annotationColor })
+      );
+      p2Sphere.position.copy(p2);
+      group.add(p2Sphere);
+
+      group.userData = { type: 'annotation', points: [p1.clone(), p2.clone()] };
+      scene.add(group);
+      return group;
+    }
+
+    function createArrowAnnotation(p1, p2) {
+      const group = new THREE.Group();
+      
+      const direction = new THREE.Vector3().subVectors(p2, p1);
+      const length = direction.length();
+      direction.normalize();
+
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+      const lineMat = new THREE.LineBasicMaterial({ color: annotationColor, linewidth: 2 });
+      const line = new THREE.Line(lineGeo, lineMat);
+      group.add(line);
+
+      const arrowHead = new THREE.ConeGeometry(0.1, 0.3, 8);
+      const arrowMat = new THREE.MeshBasicMaterial({ color: annotationColor });
+      const arrow = new THREE.Mesh(arrowHead, arrowMat);
+      arrow.position.copy(p2);
+      arrow.lookAt(p1);
+      arrow.rotateX(Math.PI / 2);
+      group.add(arrow);
+
+      group.userData = { type: 'annotation', points: [p1.clone(), p2.clone()] };
+      scene.add(group);
+      return group;
+    }
+
+    function createTextAnnotation(point, text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#' + annotationColor.toString(16).padStart(6, '0');
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText(text, 5, 35);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.strokeText(text, 5, 35);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.position.copy(point);
+      sprite.position.y += 0.5;
+      sprite.scale.set(2, 0.5, 1);
+
+      sprite.userData = { type: 'annotation', points: [point.clone()] };
+      scene.add(sprite);
+      return sprite;
+    }
+
+    function createRectAnnotation(p1, p2) {
+      const group = new THREE.Group();
+      
+      const width = Math.abs(p2.x - p1.x);
+      const height = Math.abs(p2.y - p1.y);
+      const depth = Math.abs(p2.z - p1.z);
+      const center = new THREE.Vector3(
+        (p1.x + p2.x) / 2,
+        (p1.y + p2.y) / 2,
+        (p1.z + p2.z) / 2
+      );
+
+      const boxGeo = new THREE.BoxGeometry(width, height, depth);
+      const edges = new THREE.EdgesGeometry(boxGeo);
+      const lineMat = new THREE.LineBasicMaterial({ color: annotationColor });
+      const boxLines = new THREE.LineSegments(edges, lineMat);
+      boxLines.position.copy(center);
+      group.add(boxLines);
+
+      group.userData = { type: 'annotation', points: [p1.clone(), p2.clone()] };
+      scene.add(group);
+      return group;
+    }
+
+    function renderAnnotationList() {
+      const listEl = document.getElementById('annotation-list');
+      if (!listEl) return;
+
+      if (annotations.length === 0) {
+        listEl.innerHTML = '<div class="annotation-list-empty">暂无标注</div>';
+        return;
+      }
+
+      listEl.innerHTML = annotations.map((ann, i) => `
+        <div class="annotation-list-item">
+          <div class="annotation-list-item-info">
+            <div class="annotation-list-item-color" style="background: #${ann.color.toString(16).padStart(6, '0')}"></div>
+            <span>${ann.type} - ${ann.text}</span>
+          </div>
+          <button class="annotation-list-item-remove" onclick="removeAnnotation(${i})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function removeAnnotation(index) {
+      if (annotationObjects[index]) {
+        scene.remove(annotationObjects[index]);
+        annotationObjects.splice(index, 1);
+        annotations.splice(index, 1);
+        renderAnnotationList();
+        showToast('标注已移除', 'info');
+      }
+    }
+
+    function saveAnnotations() {
+      if (annotations.length === 0) {
+        showToast('没有可保存的标注', 'warning');
+        return;
+      }
+
+      const data = {
+        timestamp: new Date().toISOString(),
+        annotations: annotations.map(a => ({
+          type: a.type,
+          points: a.points.map(p => ({ x: p.x, y: p.y, z: p.z })),
+          text: a.text,
+          color: a.color
+        }))
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `annotations_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast(`已保存 ${annotations.length} 个标注`, 'success');
+    }
+
+    function loadAnnotations() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            clearAnnotations();
+
+            data.annotations.forEach(ann => {
+              const points = ann.points.map(p => new THREE.Vector3(p.x, p.y, p.z));
+              annotationColor = ann.color;
+              
+              let obj;
+              switch(ann.type) {
+                case 'point':
+                  obj = createPointAnnotation(points[0], ann.text);
+                  break;
+                case 'line':
+                  obj = createLineAnnotation(points[0], points[1]);
+                  break;
+                case 'arrow':
+                  obj = createArrowAnnotation(points[0], points[1]);
+                  break;
+                case 'text':
+                  obj = createTextAnnotation(points[0], ann.text);
+                  break;
+                case 'rect':
+                  obj = createRectAnnotation(points[0], points[1]);
+                  break;
+              }
+
+              if (obj) {
+                annotationObjects.push(obj);
+                annotations.push({
+                  type: ann.type,
+                  points: points,
+                  text: ann.text,
+                  color: ann.color
+                });
+              }
+            });
+
+            renderAnnotationList();
+            showToast(`已加载 ${data.annotations.length} 个标注`, 'success');
+          } catch (err) {
+            showToast('加载失败：文件格式错误', 'error');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function setupLODControls() {
+      const toggleLod = document.getElementById('toggle-lod');
+      const slider = document.getElementById('lod-slider');
+      const sliderVal = document.getElementById('lod-val');
+      const detailControls = document.getElementById('lod-detail-controls');
+      const lodInfo = document.getElementById('lod-info');
+      const presetBtns = document.querySelectorAll('.lod-preset-btn');
+
+      toggleLod.addEventListener('click', () => {
+        const isOn = toggleLod.dataset.on === 'true';
+        toggleLod.dataset.on = (!isOn).toString();
+        toggleLod.classList.toggle('active', !isOn);
+        lodEnabled = !isOn;
+        detailControls.style.display = lodEnabled ? 'flex' : 'none';
+        lodInfo.style.display = lodEnabled ? 'block' : 'none';
+        
+        if (lodEnabled && currentMesh) {
+          originalGeometry = currentMesh.geometry.clone();
+          originalFaceCount = currentMesh.geometry.attributes.position.count / 3;
+          updateLODDisplay();
+          applyLOD();
+          showToast('LOD 已启用', 'info');
+        } else if (!lodEnabled && currentMesh && originalGeometry) {
+          currentMesh.geometry = originalGeometry;
+          updateLODDisplay();
+          showToast('LOD 已关闭', 'info');
+        }
+      });
+
+      slider.addEventListener('input', () => {
+        lodLevel = parseInt(slider.value);
+        sliderVal.textContent = lodLevel;
+        presetBtns.forEach(btn => {
+          btn.classList.toggle('active', parseInt(btn.dataset.lod) === lodLevel);
+        });
+        if (lodEnabled && currentMesh) {
+          applyLOD();
+          updateLODDisplay();
+        }
+      });
+
+      presetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          presetBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          lodLevel = parseInt(btn.dataset.lod);
+          slider.value = lodLevel;
+          sliderVal.textContent = lodLevel;
+          if (lodEnabled && currentMesh) {
+            applyLOD();
+            updateLODDisplay();
+          }
+        });
+      });
+    }
+
+    function applyLOD() {
+      if (!currentMesh || !originalGeometry) return;
+
+      const targetFaces = Math.floor(originalFaceCount / (lodLevel * lodLevel));
+      simplifyGeometry(currentMesh.geometry, targetFaces);
+    }
+
+    function simplifyGeometry(geometry, targetFaceCount) {
+      if (!geometry || !geometry.attributes.position) return;
+
+      const positions = geometry.attributes.position;
+      const indices = geometry.index ? geometry.index.array : null;
+      
+      if (!indices) {
+        showToast('此模型不支持LOD简化', 'warning');
+        return;
+      }
+
+      const faceCount = indices.length / 3;
+      if (faceCount <= targetFaceCount) {
+        return;
+      }
+
+      const ratio = targetFaceCount / faceCount;
+      const sampledIndices = [];
+      
+      for (let i = 0; i < indices.length; i += 3) {
+        sampledIndices.push(indices[i], indices[i + 1], indices[i + 2]);
+      }
+
+      const step = Math.max(1, Math.floor(1 / ratio));
+      const newIndices = [];
+      
+      for (let i = 0; i < sampledIndices.length; i += 3 * step) {
+        newIndices.push(sampledIndices[i], sampledIndices[i + 1], sampledIndices[i + 2]);
+      }
+
+      const newGeometry = new THREE.BufferGeometry();
+      newGeometry.setAttribute('position', positions.clone());
+      
+      if (geometry.attributes.normal) {
+        newGeometry.setAttribute('normal', geometry.attributes.normal.clone());
+      }
+      
+      newGeometry.setIndex(newIndices);
+      newGeometry.computeBoundingSphere();
+      
+      currentMesh.geometry = newGeometry;
+    }
+
+    function updateLODDisplay() {
+      if (!currentMesh || !currentMesh.geometry) return;
+
+      const positions = currentMesh.geometry.attributes.position;
+      const currentFaceCount = positions.count / 3;
+      const percentage = originalFaceCount > 0 ? ((currentFaceCount / originalFaceCount) * 100).toFixed(1) : 100;
+
+      document.getElementById('lod-face-count').textContent = Math.floor(currentFaceCount).toLocaleString();
+      document.getElementById('lod-vertex-count').textContent = positions.count.toLocaleString();
+      document.getElementById('lod-percentage').textContent = percentage + '%';
+    }
+
+    function clearAnnotations() {
+      annotationObjects.forEach(obj => scene.remove(obj));
+      annotationObjects = [];
+      annotations = [];
+      renderAnnotationList();
+      showToast('所有标注已清除', 'info');
+    }
+
+    function renderClipList() {
+      const listEl = document.getElementById('clip-list');
+      if (!listEl) return;
+      
+      if (clipList.length === 0) {
+        listEl.innerHTML = '<div class="clip-list-empty">暂无截面</div>';
+        return;
+      }
+
+      listEl.innerHTML = clipList.map(clip => `
+        <div class="clip-list-item" data-id="${clip.id}">
+          <div class="clip-item-info">
+            <span class="clip-item-id">#${clip.id}</span>
+            <span class="clip-item-axis">${clip.axis.toUpperCase()}</span>
+            <span class="clip-item-pos">${clip.position.toFixed(2)}</span>
+          </div>
+          <button class="clip-item-remove" onclick="removeClip(${clip.id})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function removeClip(id) {
+      clipList = clipList.filter(c => c.id !== id);
+      renderClipList();
+      showToast(`截面 #${id} 已移除`, 'info');
+    }
+
+    function exportClipContour() {
+      if (!currentMesh) {
+        showToast('请先加载模型', 'error');
+        return;
+      }
+
+      const geometry = currentMesh.geometry;
+      if (!geometry || !geometry.attributes.position) {
+        showToast('模型几何数据无效', 'error');
+        return;
+      }
+
+      const positions = geometry.attributes.position;
+      const indices = geometry.index ? geometry.index.array : null;
+      const contours = [];
+
+      const processFace = (i0, i1, i2, normal) => {
+        const p0 = new THREE.Vector3(positions.getX(i0), positions.getY(i0), positions.getZ(i0));
+        const p1 = new THREE.Vector3(positions.getX(i1), positions.getY(i1), positions.getZ(i1));
+        const p2 = new THREE.Vector3(positions.getX(i2), positions.getY(i2), positions.getZ(i2));
+        
+        const faceNormal = new THREE.Vector3().crossVectors(
+          new THREE.Vector3().subVectors(p1, p0),
+          new THREE.Vector3().subVectors(p2, p0)
+        ).normalize();
+
+        const centroid = new THREE.Vector3().addVectors(p0, p1).add(p2).divideScalar(3);
+        
+        return {
+          triangle: [p0, p1, p2],
+          centroid: centroid,
+          normal: faceNormal,
+          area: faceNormal.length() / 2
+        };
+      };
+
+      const faceData = [];
+      if (indices) {
+        for (let i = 0; i < indices.length; i += 3) {
+          faceData.push(processFace(indices[i], indices[i + 1], indices[i + 2]));
+        }
+      } else {
+        for (let i = 0; i < positions.count; i += 3) {
+          faceData.push(processFace(i, i + 1, i + 2));
+        }
+      }
+
+      const bbox = new THREE.Box3().setFromObject(currentMesh);
+      const exportData = {
+        timestamp: new Date().toISOString(),
+        bbox: {
+          min: { x: bbox.min.x, y: bbox.min.y, z: bbox.min.z },
+          max: { x: bbox.max.x, y: bbox.max.y, z: bbox.max.z }
+        },
+        totalFaces: faceData.length,
+        faces: faceData.slice(0, 100).map(f => ({
+          centroid: { x: f.centroid.x, y: f.centroid.y, z: f.centroid.z },
+          normal: { x: f.normal.x, y: f.normal.y, z: f.normal.z },
+          area: f.area
+        }))
+      };
+
+      if (faceData.length > 100) {
+        exportData.note = `仅显示前100个面，共 ${faceData.length} 个面`;
+      }
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clip_contour_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast(`已导出轮廓数据 (${faceData.length} 个面)`, 'success');
     }
 
     function updateClipPlane() {
@@ -3436,25 +4883,27 @@
         case 'x': normal.set(clipFlip ? 1 : -1, 0, 0); break;
         case 'y': normal.set(0, clipFlip ? 1 : -1, 0); break;
         case 'z': normal.set(0, 0, clipFlip ? 1 : -1); break;
+        case 'xy': normal.set(0, 0, clipFlip ? 1 : -1); break;
+        case 'yz': normal.set(clipFlip ? 1 : -1, 0, 0); break;
+        case 'xz': normal.set(0, clipFlip ? 1 : -1, 0); break;
       }
 
-      // Front plane
+      const offsetPos = pos + clipOffset;
+
       clipPlane.setFromNormalAndCoplanarPoint(normal, new THREE.Vector3(
-        clipAxis === 'x' ? pos : 0,
-        clipAxis === 'y' ? pos : 0,
-        clipAxis === 'z' ? pos : 0
+        clipAxis === 'x' || clipAxis === 'yz' ? offsetPos : 0,
+        clipAxis === 'y' || clipAxis === 'xz' ? offsetPos : 0,
+        clipAxis === 'z' || clipAxis === 'xy' ? offsetPos : 0
       ));
 
-      // Back plane (for thickness)
       const backNormal = normal.clone().negate();
-      const backPos = pos - clipThickness * (clipFlip ? -1 : 1);
+      const backPos = offsetPos - clipThickness * (clipFlip ? -1 : 1);
       clipPlaneBack.setFromNormalAndCoplanarPoint(backNormal, new THREE.Vector3(
-        clipAxis === 'x' ? backPos : 0,
-        clipAxis === 'y' ? backPos : 0,
-        clipAxis === 'z' ? backPos : 0
+        clipAxis === 'x' || clipAxis === 'yz' ? backPos : 0,
+        clipAxis === 'y' || clipAxis === 'xz' ? backPos : 0,
+        clipAxis === 'z' || clipAxis === 'xy' ? backPos : 0
       ));
 
-      // Clear old helpers
       if (clipHelper) { scene.remove(clipHelper); clipHelper = null; }
       if (clipHelperBack) { scene.remove(clipHelperBack); clipHelperBack = null; }
 
@@ -3466,44 +4915,42 @@
 
         const helperSize = maxSize * 1.5;
 
-        // Front helper
         const helperPos = new THREE.Vector3(center.x, center.y, center.z);
-        if (clipAxis === 'x') helperPos.x = pos;
-        if (clipAxis === 'y') helperPos.y = pos;
-        if (clipAxis === 'z') helperPos.z = pos;
+        if (clipAxis === 'x' || clipAxis === 'yz') helperPos.x = offsetPos;
+        if (clipAxis === 'y' || clipAxis === 'xz') helperPos.y = offsetPos;
+        if (clipAxis === 'z' || clipAxis === 'xy') helperPos.z = offsetPos;
 
         const planeGeo = new THREE.PlaneGeometry(helperSize, helperSize);
         const planeMat = new THREE.MeshBasicMaterial({
-          color: 0x58a6ff,
+          color: clipColor,
           transparent: true,
-          opacity: 0.2,
+          opacity: clipOpacity,
           side: THREE.DoubleSide,
           depthWrite: false
         });
         clipHelper = new THREE.Mesh(planeGeo, planeMat);
         clipHelper.position.copy(helperPos);
-        if (clipAxis === 'x') clipHelper.rotation.y = Math.PI / 2;
-        if (clipAxis === 'z') clipHelper.rotation.x = Math.PI / 2;
+        if (clipAxis === 'x' || clipAxis === 'yz') clipHelper.rotation.y = Math.PI / 2;
+        if (clipAxis === 'z' || clipAxis === 'xy') clipHelper.rotation.x = Math.PI / 2;
         scene.add(clipHelper);
 
-        // Back helper
         const backHelperPos = new THREE.Vector3(center.x, center.y, center.z);
-        const actualBackPos = pos - clipThickness * (clipFlip ? -1 : 1);
-        if (clipAxis === 'x') backHelperPos.x = actualBackPos;
-        if (clipAxis === 'y') backHelperPos.y = actualBackPos;
-        if (clipAxis === 'z') backHelperPos.z = actualBackPos;
+        const actualBackPos = offsetPos - clipThickness * (clipFlip ? -1 : 1);
+        if (clipAxis === 'x' || clipAxis === 'yz') backHelperPos.x = actualBackPos;
+        if (clipAxis === 'y' || clipAxis === 'xz') backHelperPos.y = actualBackPos;
+        if (clipAxis === 'z' || clipAxis === 'xy') backHelperPos.z = actualBackPos;
 
         const backPlaneMat = new THREE.MeshBasicMaterial({
-          color: 0xff6b6b,
+          color: clipColor,
           transparent: true,
-          opacity: 0.15,
+          opacity: clipOpacity * 0.5,
           side: THREE.DoubleSide,
           depthWrite: false
         });
         clipHelperBack = new THREE.Mesh(planeGeo.clone(), backPlaneMat);
         clipHelperBack.position.copy(backHelperPos);
-        if (clipAxis === 'x') clipHelperBack.rotation.y = Math.PI / 2;
-        if (clipAxis === 'z') clipHelperBack.rotation.x = Math.PI / 2;
+        if (clipAxis === 'x' || clipAxis === 'yz') clipHelperBack.rotation.y = Math.PI / 2;
+        if (clipAxis === 'z' || clipAxis === 'xy') clipHelperBack.rotation.x = Math.PI / 2;
         scene.add(clipHelperBack);
 
         applyMaterial();
@@ -3668,6 +5115,13 @@
           currentFileData = e.target.result;
           currentFileName = file.name;
           currentFileFormat = 'OBJ';
+          
+          const hasMtlLib = currentFileData.includes('mtllib');
+          
+          if (hasMtlLib) {
+            showToast('检测到材质文件，请同时上传 .mtl 文件', 'info');
+          }
+          
           loadOBJFromData(currentFileData, file.name);
           showToast('模型加载成功', 'success');
         } catch (err) {
@@ -3677,6 +5131,40 @@
         }
       };
       reader.readAsText(file);
+    }
+
+    function loadOBJWithMTL( objData, mtlData, filename ) {
+      try {
+        const mtlLoader = new MTLLoader();
+        const mtlMaterials = mtlLoader.parse(mtlData);
+        mtlMaterials.preload();
+        
+        const objLoader = new OBJLoader();
+        objLoader.setMaterials(mtlMaterials);
+        const object = objLoader.parse(objData);
+
+        const box = new THREE.Box3().setFromObject(object);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = maxDim > 0 ? 4 / maxDim : 1;
+
+        object.scale.setScalar(scale);
+        center.multiplyScalar(scale);
+        object.position.sub(center);
+
+        object.traverse(function(child) {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        setCurrentMesh(object, filename, size, 'OBJ');
+        showToast('OBJ 模型（含材质）加载成功', 'success');
+      } catch (err) {
+        showToast('材质解析失败: ' + err.message, 'error');
+      }
     }
 
     function loadSTLFromData(data, filename) {
@@ -4153,6 +5641,155 @@
     }
 
     // ===== Measure Tool =====
+    // ===== View Control Functions for Shortcuts =====
+    function resetView() {
+      if (!currentMesh) return;
+      const bbox = new THREE.Box3().setFromObject(currentMesh);
+      const center = bbox.getCenter(new THREE.Vector3());
+      const size = bbox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const distance = maxDim * 2;
+      
+      camera.position.set(center.x + distance, center.y + distance, center.z + distance);
+      camera.lookAt(center);
+      controls.target.copy(center);
+      controls.update();
+      showToast('视图已重置', 'success');
+    }
+
+    function fitToView() {
+      if (!currentMesh) return;
+      const bbox = new THREE.Box3().setFromObject(currentMesh);
+      const center = bbox.getCenter(new THREE.Vector3());
+      const size = bbox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      
+      camera.position.set(center.x + maxDim * 1.5, center.y + maxDim * 1.5, center.z + maxDim * 1.5);
+      camera.lookAt(center);
+      controls.target.copy(center);
+      controls.update();
+      showToast('已适应视图', 'success');
+    }
+
+    function toggleHelpTooltip() {
+      const tooltip = document.getElementById('help-tooltip');
+      tooltip.classList.toggle('show');
+    }
+
+    function panView(key) {
+      const panSpeed = 0.5;
+      switch(key) {
+        case 'arrowup': controls.object.position.y += panSpeed; break;
+        case 'arrowdown': controls.object.position.y -= panSpeed; break;
+        case 'arrowleft': controls.object.position.x -= panSpeed; break;
+        case 'arrowright': controls.object.position.x += panSpeed; break;
+      }
+      controls.update();
+    }
+
+    function zoomIn() {
+      controls.dollyIn(1.2);
+      controls.update();
+    }
+
+    function zoomOut() {
+      controls.dollyOut(1.2);
+      controls.update();
+    }
+
+    function setViewPreset(view) {
+      if (!currentMesh) {
+        const center = new THREE.Vector3(0, 0, 0);
+        camera.position.set(5, 5, 5);
+        camera.lookAt(center);
+        controls.target.copy(center);
+        controls.update();
+        return;
+      }
+      
+      const bbox = new THREE.Box3().setFromObject(currentMesh);
+      const center = bbox.getCenter(new THREE.Vector3());
+      const size = bbox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z) * 2;
+      
+      const positions = {
+        front: { pos: [0, 0, maxDim], look: [0, 0, 0] },
+        back: { pos: [0, 0, -maxDim], look: [0, 0, 0] },
+        left: { pos: [-maxDim, 0, 0], look: [0, 0, 0] },
+        right: { pos: [maxDim, 0, 0], look: [0, 0, 0] },
+        top: { pos: [0, maxDim, 0], look: [0, 0, 0] },
+        bottom: { pos: [0, -maxDim, 0], look: [0, 0, 0] },
+        iso: { pos: [maxDim, maxDim, maxDim], look: [0, 0, 0] }
+      };
+      
+      const preset = positions[view] || positions.iso;
+      camera.position.set(
+        center.x + preset.pos[0] * 0.5,
+        center.y + preset.pos[1] * 0.5,
+        center.z + preset.pos[2] * 0.5
+      );
+      camera.lookAt(center);
+      controls.target.copy(center);
+      controls.update();
+      showToast(`视图: ${view}`, 'info');
+    }
+
+    function toggleGrid() {
+      if (gridHelper) {
+        gridHelper.visible = !gridHelper.visible;
+        document.getElementById('toggle-grid').setAttribute('data-on', gridHelper.visible);
+        document.getElementById('toggle-grid').classList.toggle('active', gridHelper.visible);
+        showToast(`网格线: ${gridHelper.visible ? '显示' : '隐藏'}`, 'info');
+      }
+    }
+
+    function toggleAxes() {
+      if (axesHelper) {
+        axesHelper.visible = !axesHelper.visible;
+        document.getElementById('toggle-axes').setAttribute('data-on', axesHelper.visible);
+        document.getElementById('toggle-axes').classList.toggle('active', axesHelper.visible);
+        showToast(`坐标轴: ${axesHelper.visible ? '显示' : '隐藏'}`, 'info');
+      }
+    }
+
+    function toggleEdges() {
+      if (edgeLinesVisible) {
+        edgeLinesVisible = false;
+        document.getElementById('toggle-edges').classList.remove('active');
+        if (edgeLinesGroup) {
+          scene.remove(edgeLinesGroup);
+          edgeLinesGroup = null;
+        }
+        showToast('轮廓线: 隐藏', 'info');
+      } else {
+        edgeLinesVisible = true;
+        document.getElementById('toggle-edges').classList.add('active');
+        updateEdgeLines();
+        showToast('轮廓线: 显示', 'info');
+      }
+    }
+
+    function toggleLibrary() {
+      const library = document.getElementById('model-library');
+      const compass = document.getElementById('compass-container');
+      const isOpen = library.classList.toggle('open');
+      
+      if (compass) {
+        compass.style.right = isOpen ? '336px' : '16px';
+      }
+    }
+
+    function toggleAnnotationMode() {
+      isAnnotating = !isAnnotating;
+      if (isAnnotating) {
+        showToast('标注模式已启用，点击添加标注', 'info');
+        renderer.domElement.style.cursor = 'crosshair';
+      } else {
+        renderer.domElement.style.cursor = 'default';
+        showToast('标注模式已关闭', 'info');
+      }
+    }
+
     function toggleMeasureMode() {
       measureMode = !measureMode;
       document.getElementById('measure-btn').classList.toggle('active');
@@ -4199,29 +5836,47 @@
         scene.add(marker);
         measureMarkers.push(marker);
 
-        measurePoints.push(point);
+        measurePoints.push({ point: point, face: intersects[0].face, normal: intersects[0].face.normal });
 
-        if (measurePoints.length === 2) {
-          if (measureModeType === 'direct') {
-            performDirectMeasurement();
-          } else {
-            performAxisMeasurement();
+        const requiredPoints = (measureModeType === 'angle') ? 3 : (measureModeType === 'radius') ? 1 : 2;
+        
+        if (measurePoints.length === requiredPoints) {
+          switch(measureModeType) {
+            case 'direct': performDirectMeasurement(); break;
+            case 'axis': performAxisMeasurement(); break;
+            case 'angle': performAngleMeasurement(); break;
+            case 'radius': performRadiusMeasurement(); break;
+            case 'area': performAreaMeasurement(); break;
+            case 'volume': performVolumeMeasurement(); break;
+            default: performDirectMeasurement();
           }
+        } else {
+          const modeMessages = {
+            direct: '请再选择第二个点',
+            axis: '请再选择第二个点',
+            angle: '请再选择一个点形成角度',
+            radius: '半径已测量',
+            area: '面积已近似计算',
+            volume: '体积已近似计算'
+          };
+          showToast(modeMessages[measureModeType] || '', 'info');
         }
       }
     }
 
     function performDirectMeasurement() {
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints(measurePoints);
+      const p1 = measurePoints[0].point;
+      const p2 = measurePoints[1].point;
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([p1, p2]);
       const lineMaterial = new THREE.LineBasicMaterial({ color: 0xf0883e, linewidth: 2 });
       measureLine = new THREE.Line(lineGeometry, lineMaterial);
       scene.add(measureLine);
 
-      const distance = measurePoints[0].distanceTo(measurePoints[1]);
+      const distance = p1.distanceTo(p2);
       document.getElementById('distance-value').textContent = distance.toFixed(2);
       document.getElementById('measure-axis-results').style.display = 'none';
 
-      showPointInfo();
+      showPointInfo([p1, p2]);
       document.getElementById('measure-result').classList.add('show');
       showToast(`最短距离: ${distance.toFixed(2)} mm`, 'success');
 
@@ -4229,8 +5884,8 @@
     }
 
     function performAxisMeasurement() {
-      const p1 = measurePoints[0];
-      const p2 = measurePoints[1];
+      const p1 = measurePoints[0].point;
+      const p2 = measurePoints[1].point;
       const dx = Math.abs(p2.x - p1.x);
       const dy = Math.abs(p2.y - p1.y);
       const dz = Math.abs(p2.z - p1.z);
@@ -4257,7 +5912,7 @@
         measureAxisLines.push(line);
       });
 
-      const lineGeometry = new THREE.BufferGeometry().setFromPoints(measurePoints);
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([p1, p2]);
       const lineMaterial = new THREE.LineBasicMaterial({ color: 0xf0883e, linewidth: 2 });
       measureLine = new THREE.Line(lineGeometry, lineMaterial);
       scene.add(measureLine);
@@ -4268,24 +5923,193 @@
       document.getElementById('axis-dz').textContent = dz.toFixed(2) + ' mm';
       document.getElementById('measure-axis-results').style.display = 'flex';
 
-      showPointInfo();
+      showPointInfo([p1, p2]);
       document.getElementById('measure-result').classList.add('show');
       showToast(`XYZ轴距离 - X:${dx.toFixed(2)} Y:${dy.toFixed(2)} Z:${dz.toFixed(2)} mm`, 'success');
 
       setTimeout(() => clearMeasure(), 5000);
     }
 
-    function showPointInfo() {
-      document.getElementById('measure-points').innerHTML = `
-        <div class="measure-point">
-          <span class="measure-point-label">P1:</span>
-          (${measurePoints[0].x.toFixed(2)}, ${measurePoints[0].y.toFixed(2)}, ${measurePoints[0].z.toFixed(2)})
-        </div>
-        <div class="measure-point">
-          <span class="measure-point-label">P2:</span>
-          (${measurePoints[1].x.toFixed(2)}, ${measurePoints[1].y.toFixed(2)}, ${measurePoints[1].z.toFixed(2)})
-        </div>
-      `;
+    function performAngleMeasurement() {
+      const p1 = measurePoints[0].point;
+      const p2 = measurePoints[1].point;
+      const p3 = measurePoints[2].point;
+
+      const v1 = new THREE.Vector3().subVectors(p1, p2).normalize();
+      const v2 = new THREE.Vector3().subVectors(p3, p2).normalize();
+      const angle = v1.angleTo(v2) * (180 / Math.PI);
+
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([p1, p2, p3]);
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x58a6ff, linewidth: 2 });
+      measureLine = new THREE.Line(lineGeometry, lineMaterial);
+      scene.add(measureLine);
+
+      document.getElementById('distance-value').textContent = angle.toFixed(2);
+      document.getElementById('measure-unit').textContent = '°';
+      document.getElementById('measure-axis-results').style.display = 'none';
+
+      showPointInfo([p1, p2, p3], 'P1', 'P2', 'P3');
+      document.getElementById('measure-result').classList.add('show');
+      showToast(`角度: ${angle.toFixed(2)}°`, 'success');
+
+      setTimeout(() => clearMeasure(), 5000);
+    }
+
+    function performRadiusMeasurement() {
+      const p1 = measurePoints[0].point;
+      const normal = measurePoints[0].normal.clone().transformDirection(currentMesh.matrixWorld);
+      
+      let radius = 0.1;
+      if (currentMesh.geometry && currentMesh.geometry.boundingSphere) {
+        radius = currentMesh.geometry.boundingSphere.radius * currentMesh.scale.x;
+      } else {
+        const bbox = new THREE.Box3().setFromObject(currentMesh);
+        const size = bbox.getSize(new THREE.Vector3());
+        radius = Math.max(size.x, size.y, size.z) / 4;
+      }
+
+      const sphereGeometry = new THREE.SphereGeometry(radius, 32, 32);
+      const sphereMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x58a6ff, 
+        wireframe: true,
+        transparent: true,
+        opacity: 0.5
+      });
+      const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+      sphere.position.copy(p1);
+      scene.add(sphere);
+      measureMarkers.push(sphere);
+
+      document.getElementById('distance-value').textContent = radius.toFixed(2);
+      document.getElementById('measure-axis-results').style.display = 'none';
+
+      showPointInfo([p1], 'Center');
+      document.getElementById('measure-result').classList.add('show');
+      showToast(`半径: ${radius.toFixed(2)} mm`, 'success');
+
+      setTimeout(() => clearMeasure(), 5000);
+    }
+
+    function performAreaMeasurement() {
+      if (!currentMesh || !currentMesh.geometry) {
+        showToast('无法计算面积：模型无效', 'error');
+        return;
+      }
+
+      const geometry = currentMesh.geometry;
+      let totalArea = 0;
+
+      if (geometry.type === 'BufferGeometry') {
+        const positions = geometry.attributes.position;
+        const indices = geometry.index ? geometry.index.array : null;
+        
+        if (indices) {
+          for (let i = 0; i < indices.length; i += 3) {
+            const a = indices[i], b = indices[i + 1], c = indices[i + 2];
+            const pA = new THREE.Vector3(positions.getX(a), positions.getY(a), positions.getZ(a));
+            const pB = new THREE.Vector3(positions.getX(b), positions.getY(b), positions.getZ(b));
+            const pC = new THREE.Vector3(positions.getX(c), positions.getY(c), positions.getZ(c));
+            totalArea += triangleArea(pA, pB, pC);
+          }
+        } else {
+          for (let i = 0; i < positions.count; i += 3) {
+            const pA = new THREE.Vector3(positions.getX(i), positions.getY(i), positions.getZ(i));
+            const pB = new THREE.Vector3(positions.getX(i + 1), positions.getY(i + 1), positions.getZ(i + 1));
+            const pC = new THREE.Vector3(positions.getX(i + 2), positions.getY(i + 2), positions.getZ(i + 2));
+            totalArea += triangleArea(pA, pB, pC);
+          }
+        }
+      }
+
+      const scale = currentMesh.scale.x;
+      totalArea *= (scale * scale);
+
+      document.getElementById('distance-value').textContent = totalArea.toFixed(2);
+      document.getElementById('measure-unit').textContent = 'mm²';
+      document.getElementById('measure-axis-results').style.display = 'none';
+
+      showPointInfo([measurePoints[0].point], 'Ref');
+      document.getElementById('measure-result').classList.add('show');
+      showToast(`近似面积: ${totalArea.toFixed(2)} mm²`, 'success');
+
+      setTimeout(() => clearMeasure(), 5000);
+    }
+
+    function triangleArea(p1, p2, p3) {
+      const v1 = new THREE.Vector3().subVectors(p2, p1);
+      const v2 = new THREE.Vector3().subVectors(p3, p1);
+      return v1.cross(v2).length() / 2;
+    }
+
+    function performVolumeMeasurement() {
+      if (!currentMesh || !currentMesh.geometry) {
+        showToast('无法计算体积：模型无效', 'error');
+        return;
+      }
+
+      const geometry = currentMesh.geometry;
+      let totalVolume = 0;
+
+      if (geometry.type === 'BufferGeometry') {
+        const positions = geometry.attributes.position;
+        const indices = geometry.index ? geometry.index.array : null;
+        
+        if (indices) {
+          for (let i = 0; i < indices.length; i += 3) {
+            const a = indices[i], b = indices[i + 1], c = indices[i + 2];
+            const pA = new THREE.Vector3(positions.getX(a), positions.getY(a), positions.getZ(a));
+            const pB = new THREE.Vector3(positions.getX(b), positions.getY(b), positions.getZ(b));
+            const pC = new THREE.Vector3(positions.getX(c), positions.getY(c), positions.getZ(c));
+            totalVolume += signedVolume(pA, pB, pC);
+          }
+        }
+      }
+
+      const scale = currentMesh.scale.x * currentMesh.scale.y * currentMesh.scale.z;
+      totalVolume *= Math.abs(scale);
+
+      document.getElementById('distance-value').textContent = Math.abs(totalVolume).toFixed(2);
+      document.getElementById('measure-unit').textContent = 'mm³';
+      document.getElementById('measure-axis-results').style.display = 'none';
+
+      showPointInfo([measurePoints[0].point], 'Ref');
+      document.getElementById('measure-result').classList.add('show');
+      showToast(`近似体积: ${Math.abs(totalVolume).toFixed(2)} mm³`, 'success');
+
+      setTimeout(() => clearMeasure(), 5000);
+    }
+
+    function signedVolume(p1, p2, p3) {
+      return p1.dot(new THREE.Vector3().crossVectors(p2, p3)) / 6;
+    }
+
+    function showPointInfo(points, label1 = 'P1', label2 = 'P2', label3 = null) {
+      let html = '';
+      if (points && points.length > 0) {
+        html += `
+          <div class="measure-point">
+            <span class="measure-point-label">${label1}:</span>
+            (${points[0].x.toFixed(2)}, ${points[0].y.toFixed(2)}, ${points[0].z.toFixed(2)})
+          </div>
+        `;
+      }
+      if (points && points.length > 1) {
+        html += `
+          <div class="measure-point">
+            <span class="measure-point-label">${label2}:</span>
+            (${points[1].x.toFixed(2)}, ${points[1].y.toFixed(2)}, ${points[1].z.toFixed(2)})
+          </div>
+        `;
+      }
+      if (points && points.length > 2) {
+        html += `
+          <div class="measure-point">
+            <span class="measure-point-label">${label3}:</span>
+            (${points[2].x.toFixed(2)}, ${points[2].y.toFixed(2)}, ${points[2].z.toFixed(2)})
+          </div>
+        `;
+      }
+      document.getElementById('measure-points').innerHTML = html;
     }
 
     // ===== Screen-space Measure Labels =====
@@ -4406,7 +6230,65 @@
 
       fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
-        if (file) handleFile(file);
+        if (file) {
+          const ext = file.name.split('.').pop().toLowerCase();
+          
+          if (ext === 'obj') {
+            currentOBJData = null;
+            currentMTLData = null;
+            document.getElementById('mtl-file-name').textContent = '';
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              currentOBJData = event.target.result;
+              const hasMtlLib = currentOBJData.includes('mtllib');
+              
+              if (hasMtlLib) {
+                document.getElementById('mtl-upload-row').style.display = 'flex';
+                showToast('检测到材质引用，请上传 .mtl 文件', 'info');
+              } else {
+                document.getElementById('mtl-upload-row').style.display = 'none';
+              }
+              
+              handleFile(file);
+            };
+            reader.readAsText(file);
+          } else {
+            document.getElementById('mtl-upload-row').style.display = 'none';
+            handleFile(file);
+          }
+        }
+      });
+
+      const mtlInput = document.getElementById('mtl-file-input');
+      const mtlBtn = document.getElementById('mtl-upload-btn');
+      const mtlFileName = document.getElementById('mtl-file-name');
+
+      mtlBtn.addEventListener('click', () => mtlInput.click());
+
+      mtlInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          mtlFileName.textContent = file.name;
+          
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            currentMTLData = event.target.result;
+            
+            if (currentOBJData && currentMTLData) {
+              showLoading(true);
+              try {
+                loadOBJWithMTL(currentOBJData, currentMTLData, currentFileName || 'model.obj');
+                showToast('OBJ + MTL 材质加载成功', 'success');
+              } catch (err) {
+                showToast('材质加载失败: ' + err.message, 'error');
+              } finally {
+                showLoading(false);
+              }
+            }
+          };
+          reader.readAsText(file);
+        }
       });
 
       uploadZone.addEventListener('dragover', (e) => {
@@ -4436,7 +6318,121 @@
       canvas.addEventListener('mousemove', updateCoordinates);
 
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && measureMode) toggleMeasureMode();
+        // Skip if typing in input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        const key = e.key.toLowerCase();
+        const ctrl = e.ctrlKey || e.metaKey;
+        const shift = e.shiftKey;
+        
+        // Escape - Exit measure/annotation mode
+        if (key === 'escape') {
+          if (measureMode) toggleMeasureMode();
+          if (isAnnotating) toggleAnnotationMode();
+        }
+        
+        // Ctrl+Z - Undo (future)
+        if (ctrl && key === 'z' && !shift) {
+          e.preventDefault();
+          showToast('撤销功能开发中', 'info');
+        }
+        
+        // Ctrl+Y - Redo (future)
+        if (ctrl && key === 'y') {
+          e.preventDefault();
+          showToast('重做功能开发中', 'info');
+        }
+        
+        // Ctrl+S - Save model
+        if (ctrl && key === 's') {
+          e.preventDefault();
+          if (!document.getElementById('save-btn').disabled) {
+            saveModelToDB();
+          }
+        }
+        
+        // Ctrl+G - Toggle grid
+        if (ctrl && key === 'g') {
+          e.preventDefault();
+          toggleGrid();
+        }
+        
+        // Ctrl+A - Toggle axes
+        if (ctrl && key === 'a') {
+          e.preventDefault();
+          toggleAxes();
+        }
+        
+        // Ctrl+E - Toggle edges
+        if (ctrl && key === 'e') {
+          e.preventDefault();
+          toggleEdges();
+        }
+        
+        // Ctrl+L - Toggle library
+        if (ctrl && key === 'l') {
+          e.preventDefault();
+          toggleLibrary();
+        }
+        
+        // R - Reset view
+        if (key === 'r' && !ctrl) {
+          resetView();
+        }
+        
+        // F - Fit to view
+        if (key === 'f' && !ctrl) {
+          fitToView();
+        }
+        
+        // H - Toggle help
+        if (key === 'h' && !ctrl) {
+          toggleHelpTooltip();
+        }
+        
+        // G - Toggle grid (without ctrl)
+        if (key === 'g' && !ctrl) {
+          toggleGrid();
+        }
+        
+        // Space - Toggle sidebar
+        if (key === ' ' && !ctrl) {
+          e.preventDefault();
+          document.getElementById('sidebar').classList.toggle('open');
+        }
+        
+        // Arrow keys - Pan view
+        if (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') {
+          e.preventDefault();
+          panView(key);
+        }
+        
+        // +/- - Zoom
+        if (key === '=' || key === '+') {
+          zoomIn();
+        }
+        if (key === '-' || key === '_') {
+          zoomOut();
+        }
+        
+        // 1-7 - Quick view presets
+        if (key === '1') setViewPreset('front');
+        if (key === '2') setViewPreset('back');
+        if (key === '3') setViewPreset('left');
+        if (key === '4') setViewPreset('right');
+        if (key === '5') setViewPreset('top');
+        if (key === '6') setViewPreset('bottom');
+        if (key === '7') setViewPreset('iso');
+        
+        // M - Toggle measure mode
+        if (key === 'm' && !ctrl) {
+          toggleMeasureMode();
+        }
+        
+        // N - Toggle annotation mode
+        if (key === 'n' && !ctrl) {
+          toggleAnnotationMode();
+        }
       });
 
       document.getElementById('sidebar-toggle').addEventListener('click', () => {
@@ -4473,7 +6469,190 @@
       else if (ext === 'iges' || ext === 'igs') loadIGES(file);
       else if (ext === 'gltf' || ext === 'glb') loadGLTF(file);
       else if (ext === 'fbx') loadFBX(file);
-      else showToast('不支持的文件格式，请上传 STL / OBJ / STEP / IGES / GLTF / GLB / FBX 文件', 'error');
+      else if (ext === 'dxf') loadDXF(file);
+      else if (ext === 'xyz') loadXYZ(file);
+      else if (ext === 'ifc') loadIFC(file);
+      else showToast('不支持的文件格式', 'error');
+    }
+
+    function loadDXF(file) {
+      showToast('正在加载 DXF 文件...', 'info');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        const vertices = [];
+        
+        let inEntity = false;
+        let currentEntity = null;
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          
+          if (line === '0' || line === 'AcDbLine' || line === 'AcDbPolyline' || line === 'LWPOLYLINE') {
+            if (currentEntity && currentEntity.type === 'LINE' && currentEntity.points.length === 2) {
+              vertices.push(currentEntity.points[0]);
+              vertices.push(currentEntity.points[1]);
+            }
+            inEntity = true;
+            currentEntity = { type: null, points: [] };
+          }
+          
+          if (line.startsWith(' 10=')) {
+            const x = parseFloat(line.split('=')[1]);
+            if (currentEntity) currentEntity.x1 = x;
+          }
+          if (line.startsWith(' 11=')) {
+            const x = parseFloat(line.split('=')[1]);
+            if (currentEntity) currentEntity.x2 = x;
+          }
+          if (line.startsWith(' 20=')) {
+            const y = parseFloat(line.split('=')[1]);
+            if (currentEntity) currentEntity.y1 = y;
+          }
+          if (line.startsWith(' 21=')) {
+            const y = parseFloat(line.split('=')[1]);
+            if (currentEntity) currentEntity.y2 = y;
+          }
+          if (line.startsWith(' 30=')) {
+            const z = parseFloat(line.split('=')[1]);
+            if (currentEntity) currentEntity.z1 = z;
+          }
+          if (line.startsWith(' 31=')) {
+            const z = parseFloat(line.split('=')[1]);
+            if (currentEntity) currentEntity.z2 = z;
+          }
+          
+          if (line === 'LINE' && currentEntity) {
+            currentEntity.type = 'LINE';
+          }
+          
+          if (line === 'SEQEND' || line === 'ENDSEQ') {
+            if (currentEntity && currentEntity.type === 'LINE' && currentEntity.points.length === 2) {
+              vertices.push(currentEntity.points[0]);
+              vertices.push(currentEntity.points[1]);
+            }
+            inEntity = false;
+            currentEntity = null;
+          }
+        }
+        
+        const group = new THREE.Group();
+        for (let i = 0; i < vertices.length; i += 2) {
+          const geometry = new THREE.BufferGeometry().setFromPoints([vertices[i], vertices[i + 1]]);
+          const material = new THREE.LineBasicMaterial({ color: 0x58a6ff });
+          const line = new THREE.Line(geometry, material);
+          group.add(line);
+        }
+        
+        scene.add(group);
+        currentMesh = group;
+        fitCameraToModel();
+        showToast('DXF 文件已加载', 'success');
+      };
+      reader.readAsText(file);
+    }
+
+    function loadXYZ(file) {
+      showToast('正在加载 XYZ 点云...', 'info');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        const points = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line || line.startsWith('#')) continue;
+          
+          const parts = line.split(/[\s,]+/);
+          if (parts.length >= 3) {
+            const x = parseFloat(parts[0]);
+            const y = parseFloat(parts[1]);
+            const z = parseFloat(parts[2]);
+            if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
+              points.push(new THREE.Vector3(x, y, z));
+            }
+          }
+        }
+        
+        if (points.length === 0) {
+          showToast('无法解析 XYZ 文件', 'error');
+          return;
+        }
+        
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.PointsMaterial({ 
+          color: 0x58a6ff, 
+          size: 0.05,
+          sizeAttenuation: true
+        });
+        const pointCloud = new THREE.Points(geometry, material);
+        
+        scene.add(pointCloud);
+        currentMesh = pointCloud;
+        fitCameraToModel();
+        showToast(`XYZ 点云已加载 (${points.length} 点)`, 'success');
+      };
+      reader.readAsText(file);
+    }
+
+    function loadIFC(file) {
+      showToast('正在加载 IFC 文件...', 'beginner', 5000);
+      showToast('IFC 支持需要 web-ifc 库，已简化解析', 'info', 5000);
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        const vertices = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          
+          if (line.includes('IFCCARTESIANPOINT')) {
+            const coords = line.match(/[\d.-]+/g);
+            if (coords && coords.length >= 3) {
+              const x = parseFloat(coords[0]);
+              const y = parseFloat(coords[1]);
+              const z = parseFloat(coords[2]);
+              if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
+                vertices.push(new THREE.Vector3(x, y, z));
+              }
+            }
+          }
+        }
+        
+        const group = new THREE.Group();
+        
+        if (vertices.length > 0) {
+          const geometry = new THREE.BufferGeometry().setFromPoints(vertices);
+          const material = new THREE.PointsMaterial({ 
+            color: 0xf59e0b, 
+            size: 0.1,
+            sizeAttenuation: true
+          });
+          const pointCloud = new THREE.Points(geometry, material);
+          group.add(pointCloud);
+        }
+        
+        for (let i = 0; i < vertices.length - 1; i += 3) {
+          if (i + 2 < vertices.length) {
+            const triangle = new THREE.BufferGeometry().setFromPoints([
+              vertices[i], vertices[i + 1], vertices[i + 2]
+            ]);
+            const edges = new THREE.EdgesGeometry(triangle);
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x58a6ff }));
+            group.add(line);
+          }
+        }
+        
+        scene.add(group);
+        currentMesh = group;
+        fitCameraToModel();
+        showToast(`IFC 文件已加载 (${vertices.length} 顶点)`, 'success');
+      };
+      reader.readAsText(file);
     }
 
     init();
