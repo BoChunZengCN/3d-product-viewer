@@ -1,79 +1,186 @@
-# 轻量化三维预览 | 数据可视化平台 V2.0
+# 轻量化三维预览 | 数据可视化平台 V3.0
 
-一个基于 Web 的专业 3D 模型预览工具，面向工程师、产品设计人员、营销人员和创作者。支持多种 CAD 格式导入、材质编辑、截面分析、测量工具等高级功能。
+基于 Web 的专业 3D 模型预览系统，面向工程师、产品设计人员、营销人员和创作者。
 
-## 在线体验
+V3.0 完成了从单文件 PoC 到全栈应用的重构：新增用户认证、云端模型库、服务端格式转换、协作分享链接，支持 Docker 一键部署。
 
-直接在浏览器中打开 `POC.html` 即可使用，或启动本地服务器：
+## 快速开始
+
+### Docker 一键部署（推荐）
 
 ```bash
-# 使用 Node.js 启动本地服务器
-node -e "const http=require('http'),fs=require('fs'),path=require('path');http.createServer((req,res)=>{const f=path.join(process.cwd(),req.url=='/'?'POC.html':req.url);try{const d=fs.readFileSync(f);const e=path.extname(f);const c={'.html':'text/html','.js':'text/javascript','.css':'text/css'}[e]||'application/octet-stream';res.writeHead(200,{'Content-Type':c});res.end(d);}catch(e){res.writeHead(404);res.end();}}).listen(8080);"
-
-# 然后访问 http://localhost:8080/POC.html
+git clone https://github.com/BoChunZengCN/3d-product-viewer.git
+cd 3d-product-viewer
+make init
 ```
+
+启动后访问 `http://localhost:8080`，默认账号 `admin@viewer3d.local / admin123`。
+
+### 本地开发
+
+```bash
+# 后端
+cd backend && cp .env.example .env && npm install && npm run dev
+
+# 前端（另一个终端）
+cd frontend && npm install && npm run dev
+```
+
+前端开发服务器 `http://localhost:5173`，自动代理 `/api` 到后端 `:3000`。
+
+## 架构概览
+
+```
+浏览器 (Three.js + Vite)
+    │
+    │ REST API + JWT
+    ▼
+Nginx :80 ──→ Node.js/Express :3000 ──→ PostgreSQL
+                    │
+               文件存储 (local / S3)
+```
+
+| 层 | 技术 | 说明 |
+|---|---|---|
+| 前端 | Three.js 0.160 + Vite | 模块化 3D 渲染，代码分割 |
+| 后端 | Express + Prisma + JWT | RESTful API，Worker 线程格式转换 |
+| 数据库 | PostgreSQL 16 | 用户/模型/目录/分享/转换任务 |
+| 部署 | Docker Compose | Nginx + Node.js + PG 三容器 |
 
 ## 功能特性
 
+### 用户系统
+- 注册 / 登录（JWT 双 token 机制）
+- 用户隔离的模型库和目录
+
 ### 文件导入
-- 支持 **STL**、**OBJ**、**STEP**、**IGES**、**GLTF/GLB**、**FBX** 格式
-- 拖拽上传或点击选择文件
-- 自动缩放至合适尺寸并居中显示
-- 大模型分块加载，避免页面无响应
+- 支持 STL、OBJ、STEP、IGES、GLTF/GLB、FBX、DXF、XYZ、IFC
+- 拖拽上传，带进度条
+- 大文件分块加载
+
+### 云端模型库
+- 模型上传到服务器持久化存储（替代 IndexedDB）
+- 目录分类管理（支持嵌套、折叠/展开）
+- 模型跨目录移动
+- 搜索与过滤
+
+### 服务端格式转换
+- STEP/IGES 文件自动在 Worker 线程中转换
+- OpenCASCADE WASM 解析 → 标准化 JSON 网格数据
+- 转换进度实时轮询
+- 前端直接加载转换后的 BufferGeometry
+
+### 协作分享
+- 生成分享链接（短链 nanoid）
+- 可选密码保护
+- 可选过期时间
+- 可选最大查看次数
+- 访客无需登录即可预览
 
 ### 3D 渲染
-- 基于 Three.js 0.160.0 的 WebGL 渲染
-- 支持旋转、平移、缩放操作
-- 双面渲染，模型背面不消失
-- 网格线与坐标轴显示（可开关）
-- 轮廓线显示（外轮廓，性能优化）
+- WebGL 渲染（Three.js）
+- 旋转、平移、缩放
+- 双面渲染
+- 网格线 / 坐标轴 / 轮廓线显示
 
 ### 视图控制
-- 7 种标准视图：前、后、左、右、顶、底、等轴测
-- 自定义视图保存与快速切换
-- 平滑的相机动画过渡
-- 自动居中与最佳视角
+- 7 种标准视图（前/后/左/右/顶/底/等轴测）
+- 平滑相机动画过渡
+- 键盘快捷键 1-7 快速切换
 
 ### 材质系统
-- 12 种预设材质（金属银、黄金、碳纤维、陶瓷白等）
-- 自定义材质上传（颜色、金属度、粗糙度、贴图）
+- 12 种预设 PBR 材质
+- 自定义颜色、金属度、粗糙度
 - 实时材质切换
-- 材质库保存与管理
-
-### 背景设置
-- 纯色背景
-- 渐变背景（默认）
-- 自定义图片背景
 
 ### 测量工具
-- 最短距离测量
-- XYZ 轴距离测量
+- 距离 / 轴向 / 角度 / 半径 / 面积 / 体积 六种模式
+- 点击模型选取测量点
 - 屏幕空间标签显示
-- 测量点标记与清除
 
-### 截面分析
-- X/Y/Z 轴截面
-- 截面位置调整
-- 截面厚度控制
-- 截面方向反转
-- 显示/隐藏截面
+## 项目结构
 
-### 模型库
-- 本地 IndexedDB 持久化存储
-- 目录分类管理（支持折叠/展开）
-- 模型跨目录移动
-- 新建/重命名/删除目录
-- 模型搜索与过滤
+```
+3d-product-viewer/
+├── frontend/                    # 前端（Vite + Three.js）
+│   ├── src/
+│   │   ├── api/                 # API 客户端（JWT 自动注入/刷新）
+│   │   │   ├── client.js        # fetch 封装 + 上传进度
+│   │   │   ├── auth.js          # 登录/注册/退出
+│   │   │   └── modules.js       # 模型/目录/分享/转换 CRUD
+│   │   ├── core/                # Three.js 核心模块
+│   │   │   ├── SceneManager.js  # 场景/相机/灯光/渲染循环
+│   │   │   ├── LoaderFactory.js # STL/OBJ/GLTF/FBX + 服务端JSON
+│   │   │   ├── MaterialManager.js
+│   │   │   └── MeasureManager.js
+│   │   ├── components/          # UI 组件
+│   │   │   ├── Auth/            # 登录/注册界面
+│   │   │   ├── ShareDialog/     # 分享弹窗
+│   │   │   └── Toast/           # 通知
+│   │   ├── store/               # 状态管理（发布-订阅）
+│   │   ├── styles/              # CSS（从 POC.html 抽取）
+│   │   ├── utils/               # 常量/工具函数
+│   │   └── main.js              # 应用入口
+│   ├── index.html
+│   ├── vite.config.js
+│   └── tests/verify.js          # 前端验证测试（167项）
+│
+├── backend/                     # 后端（Node.js + Express）
+│   ├── src/
+│   │   ├── config/              # 环境变量 + 数据库连接
+│   │   ├── middleware/          # JWT认证 / multer上传 / 错误处理
+│   │   ├── routes/              # 路由（auth/model/folder/share/convert）
+│   │   ├── services/            # 业务逻辑层
+│   │   │   ├── auth.service.js  # bcrypt + JWT 双 token
+│   │   │   ├── storage.service.js # local/S3 抽象层
+│   │   │   ├── convert.service.js # Worker 线程管理
+│   │   │   └── share.service.js # 分享链接（密码/过期/计数）
+│   │   ├── workers/             # 格式转换子线程
+│   │   └── index.js             # Express 入口
+│   ├── prisma/
+│   │   ├── schema.prisma        # 5张表：users/folders/models/shares/jobs
+│   │   └── seed.js              # 初始化数据
+│   ├── tests/verify.js          # 后端验证测试（144项）
+│   ├── Dockerfile
+│   └── package.json
+│
+├── nginx/default.conf           # Nginx 反向代理 + 静态文件
+├── docker-compose.yml           # 三容器编排
+├── Makefile                     # 快捷命令
+├── POC.html                     # V2.0 原始单文件（保留）
+├── docs/
+│   ├── ARCHITECTURE.md          # 全栈重构方案
+│   ├── DATABASE_DESIGN.md       # 数据库 + 存储设计
+│   └── DEPLOY.md                # 部署指南
+└── README.md
+```
 
-### 显示设置
-- 网格线显示/隐藏
-- 坐标轴显示/隐藏
-- 轮廓线显示/隐藏（仅外轮廓，性能优化）
+## API 端点
 
-### 帮助系统
-- 操作指南气泡弹窗
-- 快捷键提示
-- 鼠标操作说明
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | `/api/auth/register` | 注册 | - |
+| POST | `/api/auth/login` | 登录 → JWT | - |
+| POST | `/api/auth/refresh` | 刷新 token | - |
+| GET | `/api/auth/me` | 当前用户 | ✅ |
+| GET | `/api/models` | 模型列表 | ✅ |
+| POST | `/api/models/upload` | 上传模型 | ✅ |
+| GET | `/api/models/:id` | 模型详情 | ✅ |
+| GET | `/api/models/:id/download` | 下载文件 | ✅ |
+| PUT | `/api/models/:id` | 更新元数据 | ✅ |
+| PUT | `/api/models/:id/move` | 移动目录 | ✅ |
+| DELETE | `/api/models/:id` | 删除 | ✅ |
+| GET | `/api/folders` | 目录列表 | ✅ |
+| POST | `/api/folders` | 创建目录 | ✅ |
+| PUT | `/api/folders/:id` | 重命名 | ✅ |
+| DELETE | `/api/folders/:id` | 删除 | ✅ |
+| POST | `/api/share` | 创建分享链接 | ✅ |
+| GET | `/api/share/:token` | 访问分享 | - |
+| GET | `/api/share/:token/download` | 下载分享模型 | - |
+| DELETE | `/api/share/:id` | 撤销分享 | ✅ |
+| POST | `/api/convert` | 格式转换 | ✅ |
+| GET | `/api/convert/:jobId/status` | 转换进度 | ✅ |
+| GET | `/api/health` | 健康检查 | - |
 
 ## 操作指南
 
@@ -82,47 +189,62 @@ node -e "const http=require('http'),fs=require('fs'),path=require('path');http.c
 | 左键拖拽 | 旋转视图 |
 | 右键拖拽 | 平移视图 |
 | 滚轮 | 缩放视图 |
-| 点击 | 测量模式下选取点 |
-| Esc | 退出测量模式 |
+| 点击模型 | 测量模式下选取点 |
+| `1`-`7` | 快速切换视图 |
+| `R` | 重置/适应视图 |
+| `M` | 切换测量模式 |
+| `Esc` | 退出测量 |
+| `Ctrl+G` | 切换网格线 |
+| `Ctrl+L` | 切换模型库 |
 
 ## 技术栈
 
-- **Three.js 0.160.0** - WebGL 3D 渲染引擎
-- **OpenCASCADE WebAssembly** (occt-import-js) - STEP/IGES 格式解析
-- **IndexedDB** - 本地模型持久化存储
-- **GLTFLoader / FBXLoader** - GLTF/GLB/FBX 格式支持
-- **纯前端实现** - 无需后端服务器
+| 组件 | 技术 | 版本 |
+|------|------|------|
+| 3D 渲染 | Three.js | 0.160.0 |
+| 前端构建 | Vite | 6.x |
+| 后端框架 | Express | 4.21 |
+| ORM | Prisma | 6.x |
+| 数据库 | PostgreSQL | 16 |
+| 认证 | JWT + bcrypt | - |
+| 格式转换 | occt-import-js (WASM) | 0.0.22 |
+| 容器化 | Docker Compose | - |
+| 反向代理 | Nginx | Alpine |
 
-## 浏览器兼容性
+## 测试
 
-- Chrome / Edge / Firefox / Safari 最新版
-- 需要 WebGL 2.0 支持
-- 推荐 Chrome 或 Edge 以获得最佳性能
+```bash
+# 后端验证（144 项）
+cd backend && node tests/verify.js
 
-## 项目结构
-
+# 前端验证（167 项）
+cd frontend && node tests/verify.js
 ```
-.
-├── POC.html          # 主应用文件（完整功能）
-├── index.html        # 入口页面
-└── README.md         # 项目文档
-```
 
-## 最新更新
+## 版本历史
 
-### v2.0 更新内容
-- ✅ 新增 GLTF/GLB/FBX 格式支持
-- ✅ 新增模型库目录折叠/展开功能
-- ✅ 优化网格线与坐标轴显示（亮色可见）
-- ✅ 边界线改为轮廓线（仅外轮廓，性能提升）
-- ✅ 修复切换模型时轮廓线残留问题
-- ✅ 大模型分块加载，避免页面无响应
-- ✅ 模型库面板宽度优化，按钮不再遮挡
-- ✅ 新增帮助图标与操作指南气泡
+### V3.0（当前版本）
+- 全栈重构：4200 行单文件 → 53 个模块化文件
+- 新增 Node.js 后端（Express + Prisma + JWT）
+- 新增 PostgreSQL 数据库（5 张表）
+- 云端模型存储（替代 IndexedDB）
+- 服务端 STEP/IGES Worker 线程转换
+- 协作分享链接（密码/过期/次数限制）
+- Docker Compose 一键部署
+- 前端 Vite 构建 + Three.js 代码分割
+- 311 项自动化验证测试
 
-## GitHub 仓库
+### V2.0
+- 新增 GLTF/GLB/FBX 格式支持
+- 模型库目录折叠/展开
+- 轮廓线（仅外轮廓，性能优化）
+- 大模型分块加载
+- 帮助图标与操作指南
 
-https://github.com/BoChunZengCN/3d-product-viewer
+### V1.0
+- 基础 STL/OBJ 预览
+- 材质库 + 截面分析 + 测量工具
+- IndexedDB 本地存储
 
 ## 许可证
 

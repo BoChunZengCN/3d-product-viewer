@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # ===== Nginx (前端 + 反向代理) =====
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+      # - "443:443"  # HTTPS 时取消注释，并挂载证书
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      # - ./certs:/etc/nginx/certs:ro  # SSL 证书
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - viewer-net
+
+  # ===== Node.js 后端 =====
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file: ./backend/.env
+    volumes:
+      - model-storage:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - viewer-net
+    # 不暴露端口，仅通过 Nginx 访问
+
+  # ===== PostgreSQL =====
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: viewer3d
+      POSTGRES_USER: viewer
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-viewer_pass}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U viewer -d viewer3d"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - viewer-net
+    # 不暴露端口到宿主机，仅内部访问
+
+volumes:
+  pg-data:
+    driver: local
+  model-storage:
+    driver: local
+
+networks:
+  viewer-net:
+    driver: bridge

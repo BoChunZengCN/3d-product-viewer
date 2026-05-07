@@ -1,0 +1,93 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatar    String?
+  models    Model[]
+  folders   Folder[]
+  shares    ShareLink[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  models    Model[]
+  parentId  String?
+  parent    Folder?  @relation("FolderTree", fields: [parentId], references: [id])
+  children  Folder[] @relation("FolderTree")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("folders")
+}
+
+model Model {
+  id            String   @id @default(cuid())
+  name          String
+  format        String
+  originalSize  Int
+  storagePath   String
+  thumbnailPath String?
+  convertedPath String?
+  metadata      Json?
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId      String?
+  folder        Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  annotations   Json?
+  shares        ShareLink[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, folderId])
+  @@index([userId, createdAt])
+  @@map("models")
+}
+
+model ShareLink {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  modelId   String
+  model     Model     @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime?
+  password  String?
+  viewCount Int       @default(0)
+  maxViews  Int?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@map("share_links")
+}
+
+model ConvertJob {
+  id         String   @id @default(cuid())
+  modelId    String?
+  inputPath  String
+  outputPath String?
+  status     String   @default("pending")
+  progress   Int      @default(0)
+  error      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("convert_jobs")
+}
